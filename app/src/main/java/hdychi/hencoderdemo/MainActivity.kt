@@ -15,10 +15,15 @@ import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.*
+import rx.Observable
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import kotlin.coroutines.experimental.CoroutineContext
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity(),OnChangeListener{
+
+
     var playMusicService : PlayMusicService ?= null
     private val time = SimpleDateFormat("mm:ss")
     private val handler = Handler{_ ->
@@ -26,8 +31,18 @@ class MainActivity : AppCompatActivity(){
         nowTime.text = time.format(current)
         val all = playMusicService?.mediaPlayer?.duration ?: 0
         allTime.text = time.format(all)
-        Log.i("kotlin thread",Thread.currentThread().name)
-        music_bar.progress = Math.floor(current / (all.toDouble())  * 100).toInt()
+       // Log.i("kotlin thread",Thread.currentThread().name)
+        music_bar.progress = Math
+                .floor(current / (all.toDouble())  * 100)
+                .toInt()
+        if(playMusicService?.mediaPlayer?.isPlaying?:false){
+            play.background = getDrawable(R.drawable.pause)
+        }
+        else{
+            play.background = getDrawable(R.drawable.play)
+        }
+        song_name.text = playMusicService?.currentSong?.title
+        album_name.text = playMusicService?.currentSong?.album
         true
     }
 
@@ -37,9 +52,10 @@ class MainActivity : AppCompatActivity(){
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            playMusicService = (service as PlayMusicService.MyBinder).service
+            Log.i("初始化","执行")
+            playMusicService = (service as PlayMusicService.MyBinder).getService(this@MainActivity)
+            onChange()
         }
-
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,23 +63,23 @@ class MainActivity : AppCompatActivity(){
         var intent = Intent(this,PlayMusicService::class.java)
         bindService(intent,connection,Context.BIND_AUTO_CREATE)
         initListener()
-
     }
     private fun initListener(){
+
         play.setOnClickListener { _-> playMusicService?.playMusic() }
         last.setOnClickListener { _-> playMusicService?.lastSong() }
         next.setOnClickListener { _-> playMusicService?.nextSong()}
         music_bar.setOnMoveListner { playMusicService?.seekTime(music_bar.progress) }
-        Log.i("current thread",Thread.currentThread().name)
         runBlocking<Unit> {
             Log.i("blocking","did work")
             val thread = launch(CommonPool) {
-               refresh()
+                refresh()
             }
             thread.start()
 
         }
 
+        Log.i("current thread",Thread.currentThread().name)
     }
 
     override fun onResume() {
@@ -74,8 +90,14 @@ class MainActivity : AppCompatActivity(){
         super.onDestroy()
         unbindService(connection)
     }
+    override fun onChange() {
+        Log.i("接口","调用")
+        Observable.just(playMusicService?.pic)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { t -> album_pic.setImageBitmap(t) }
+    }
     suspend fun refresh(){
-        Log.i("kotlin thread",Thread.currentThread().name)
         while(true) {
             delay(200)
             handler.sendEmptyMessage(0)
