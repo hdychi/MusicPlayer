@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.bean
 
 data class Mp3Info(var id : Long,var title : String,
                    var artist: String,var album : String,

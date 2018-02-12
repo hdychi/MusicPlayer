@@ -2,9 +2,7 @@ package hdychi.hencoderdemo;
 
 import android.app.Service;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -14,8 +12,11 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
+import hdychi.hencoderdemo.bean.Mp3Info;
+import hdychi.hencoderdemo.interfaces.OnChangeListener;
 
-public class PlayMusicService extends Service {
+
+public class PlayLocalService extends Service {
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private boolean isPlaying = false;
     private List<Mp3Info> musicList;
@@ -24,7 +25,7 @@ public class PlayMusicService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        musicList = MusicUtil.INSTANCE.getMusicList();
+        musicList = CommonData.localMusicList;
         resetPlayer();
         return new MyBinder();
     }
@@ -62,16 +63,13 @@ public class PlayMusicService extends Service {
         resetPlayer();
 
     }
-    public void seekTime(int progress){
-        mediaPlayer.seekTo((int)Math.floor(progress / 100.0 * mediaPlayer.getDuration()));
+    public void seekTime(float progress){
+        mediaPlayer.seekTo((int)Math.floor(progress * mediaPlayer.getDuration()));
     }
     public MediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
 
-    public void setOnChangeListener(OnChangeListener onChangeListener) {
-        this.onChangeListener = onChangeListener;
-    }
 
     public Bitmap getPic(){
         return MusicUtil.INSTANCE.getArtwork(this,
@@ -82,9 +80,9 @@ public class PlayMusicService extends Service {
         return musicList.get(nowIndex);
     }
     public class MyBinder extends Binder {
-        PlayMusicService getService(OnChangeListener listener){
-            PlayMusicService.this.onChangeListener = listener;
-            return PlayMusicService.this;
+        PlayLocalService getService(OnChangeListener listener){
+            PlayLocalService.this.onChangeListener = listener;
+            return PlayLocalService.this;
         }
     }
 

@@ -1,7 +1,6 @@
 package hdychi.hencoderdemo;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,9 +10,11 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import hdychi.hencoderdemo.interfaces.OnMoveListner;
+
 public class MusicBar extends View {
     private Context mContext;
-    private int progress = 0;
+    private float progress = 0.0f;
     private final int RADIUS = 25;
     private final int startY = 28;
     private final int startX = 30;
@@ -38,15 +39,16 @@ public class MusicBar extends View {
         paint.setStrokeWidth(20);
         paint.setStrokeCap(Paint.Cap.ROUND);
         float maxW = this.getWidth() - startX;
-        float endX = startX + maxW * progress / 100.0f;
-        for(int i = 0;i < progress;i++){
+        float endX = startX + maxW * progress;
+        int percent = (int)Math.ceil(progress * 100);
+        for(int i = 0;i < percent;i++){
             canvas.drawRect(startX + i * maxW / 100,(float) startY,startX + i * maxW / 100 + maxW / 200,startY + RADIUS / 2.0f,paint);
         }
         paint.setColor(Color.parseColor("#ADADAD"));
-        for(int i = progress;i < 100;i++){
+        for(int i = percent;i < 100;i++){
             canvas.drawRect(startX + i * maxW / 100,(float) startY,startX + i * maxW / 100 + maxW / 200,startY + RADIUS / 2.0f,paint);
         }
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.RED);
         canvas.drawRect(endX,startY - RADIUS / 2,endX + maxW / 100,startY + RADIUS,paint);
         Log.i("onDr","调用");
 
@@ -64,11 +66,8 @@ public class MusicBar extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final float x = event.getX();
-        final float y = event.getY();
-        final int action = event.getAction();
         float maxW = this.getWidth() - 30;
-        float circleX= maxW * progress / 100.0f;
-        progress = Math.max(0,(int)Math.floor((x - startX) / maxW * 100));
+        progress = (x - startX) / maxW ;
         invalidate();
         if(onMoveListner != null){
             onMoveListner.onMove();
@@ -76,11 +75,11 @@ public class MusicBar extends View {
         return true;
     }
 
-    public int getProgress() {
+    public float getProgress() {
         return progress;
     }
 
-    public void setProgress(int progress) {
+    public void setProgress(float progress) {
         this.progress = progress;
         invalidate();
     }

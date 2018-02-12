@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.content.ContentUris
+import hdychi.hencoderdemo.bean.Artist
+import hdychi.hencoderdemo.bean.Mp3Info
 import java.io.FileDescriptor
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -14,16 +16,19 @@ import java.io.InputStream
 
 
 object MusicUtil{
+    val LOCAL_MUSIC = 0
+    val NETWROK_MUSIC = 1
+    var mode = 1
     val albumArtUri = Uri.parse("content://media/external/audio/albumart")
     private val time = SimpleDateFormat("mm:ss")
-    public var musicList = mutableListOf<Mp3Info>()
+
     fun getMp3Infos(context:Context) : MutableList<Mp3Info>{
         val cursor = context.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null, null,
                 MediaStore.Audio.Media.DEFAULT_SORT_ORDER)
         val res : MutableList<Mp3Info> = mutableListOf()
-        cursor.moveToPrevious()
-        for (i in 0 until cursor.count - 1){
-            cursor.moveToNext()
+        cursor.moveToFirst()
+        while (!cursor.isAfterLast){
+
             val id =  cursor.getLong(cursor
                     .getColumnIndex(MediaStore.Audio.Media._ID))
             val title = cursor.getString(cursor
@@ -39,9 +44,10 @@ object MusicUtil{
                     .getColumnIndex(MediaStore.Audio.Media.SIZE)) // 文件大小
             val url = cursor.getString(cursor
                     .getColumnIndex(MediaStore.Audio.Media.DATA)) // 文件路径
-            val mp3Info = Mp3Info(id,title,artist,album,albumId,
-                    duration,size,url )
+            val mp3Info = Mp3Info(id, title, artist, album, albumId,
+                    duration, size, url)
             res.add(mp3Info)
+            cursor.moveToNext()
         }
         return res
     }
@@ -213,5 +219,14 @@ object MusicUtil{
             }
         }
         return candidate
+    }
+
+    fun getArtistsStr(artists : List<Artist>?) : String{
+        var res = ""
+        artists?.forEach { t -> res += t.name + "、" }
+        if (res.isNotEmpty()){
+            res = res.substring(0,res.length - 1)
+        }
+        return res
     }
 }
