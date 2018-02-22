@@ -1,9 +1,8 @@
 package hdychi.hencoderdemo.api
 
+import android.util.Log
 import hdychi.hencoderdemo.CommonData
-import hdychi.hencoderdemo.bean.PlaylistItem
-import hdychi.hencoderdemo.bean.Result
-import hdychi.hencoderdemo.bean.UserBean
+import hdychi.hencoderdemo.bean.*
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import okhttp3.internal.platform.Platform
@@ -19,15 +18,8 @@ import java.util.concurrent.TimeUnit
 
 
 class ApiProvider(){
-    val loggingInterceptor = HttpLoggingInterceptor { message ->
-        if (message.startsWith("{")) {
-            Logger.DEFAULT.log(message)
-        } else {
-            Platform.get().log(INFO, message, null)
-        }
-    }
+
     val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
             .retryOnConnectionFailure(true)
             .connectTimeout(30,TimeUnit.SECONDS)
             .build()
@@ -48,7 +40,8 @@ class ApiProvider(){
     }
 
     fun getPlayLists(subscriber: Subscriber<MutableList<PlaylistItem>>){
-        mService.getPlayLists(CommonData.user.profile!!.userId)
+        mService.getPlayLists(CommonData.getUser()?.profile?.userId)
+                .filter{t -> t != null}
                 .map { t -> t.playlist as MutableList}
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -59,6 +52,33 @@ class ApiProvider(){
         mService.getListDetail(id)
                 .filter { t -> t.code / 100 == 2|| t.code / 100 ==3 }
                 .map { t -> t.result }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber)
+    }
+    fun getMusicUrl(subscriber: Subscriber<String>,id :Int){
+        mService.getMusicUrl(id)
+                .map { t -> t.data!!.first().url }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber)
+    }
+    fun getSongDetail(subscriber: Subscriber<SongsItem>,id : Int){
+        mService.getSongDetail(id)
+                .map { t -> t.songs!!.first() }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber)
+    }
+    fun getSongComment(subscriber : Subscriber<CommentResponse>,id : Int,limit : Int,offset : Int){
+        mService.getSongComment(id,limit,offset)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber)
+    }
+    fun getLyric(subscriber: Subscriber<String>,id : Int){
+        mService.getLyric(id)
+                .map { t -> t.lrc!!.lyric }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)

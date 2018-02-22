@@ -1,6 +1,8 @@
-package hdychi.hencoderdemo.main
+package hdychi.hencoderdemo.ui.activities
 
+import android.content.ComponentName
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -19,28 +21,44 @@ import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.PlaylistItem
 import hdychi.hencoderdemo.bean.SpacesItemDecoration
 import hdychi.hencoderdemo.interfaces.OnItemClickListener
+import hdychi.hencoderdemo.ui.adapters.PlayListAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import rx.Subscriber
+import android.app.ActivityManager.RunningTaskInfo
+import android.app.ActivityManager
+import android.content.Context
+import android.support.v7.widget.Toolbar
+import hdychi.hencoderdemo.DemoApp
+import hdychi.hencoderdemo.support.isInTask
+import hdychi.hencoderdemo.support.toast
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
+    override fun getContentViewId() = R.layout.activity_main
+    override fun getToolBar() = toolbar
+
     val mAdapter = PlayListAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
-
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        fab.setOnClickListener {
+            val intent = Intent(applicationContext,PlayNetActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            if (intent.isInTask(this@MainActivity)){
+                startActivity(intent)
+            }
+            else{
+                this@MainActivity.toast("没有音乐在播放！")
+            }
         }
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
+
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
@@ -54,10 +72,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val headerBackground = nav_view.getHeaderView(0)
                 .findViewById<SimpleDraweeView>(R.id.head_background)
 
-        userName.text = CommonData.user.profile?.nickname
-        userPhone?.text = CommonData.user.profile?.description
-        photo.setImageURI(Uri.parse(CommonData.user.profile?.avatarUrl))
-        headerBackground.setImageURI(Uri.parse(CommonData.user.profile?.backgroundUrl))
+        userName.text = CommonData.getUser()?.profile?.nickname
+        userPhone?.text = CommonData.getUser()?.profile?.description
+        photo.setImageURI(Uri.parse(CommonData.getUser()?.profile?.avatarUrl?:""))
+        headerBackground.setImageURI(Uri.parse(CommonData.getUser()?.profile?.backgroundUrl?:""))
 
         play_swipe.setOnRefreshListener { refresh()}
         play_list.layoutManager = LinearLayoutManager(this)
@@ -71,7 +89,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
         } else {
-            super.onBackPressed()
+            moveTaskToBack(true)
         }
     }
 
@@ -79,23 +97,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
-            R.id.nav_camera -> {
+            R.id.logout -> {
                 // Handle the camera action
+                CommonData.setLogin(false)
+                val intent = Intent(this@MainActivity,LoginActivity::class.java)
+                startActivity(intent)
+                finish()
             }
-            R.id.nav_gallery -> {
-
-            }
-            R.id.nav_slideshow -> {
-
-            }
-            R.id.nav_manage -> {
-
-            }
-            R.id.nav_share -> {
-
-            }
-            R.id.nav_send -> {
-
+            R.id.quit ->{
+                DemoApp.clearActivity()
             }
         }
 
@@ -115,7 +125,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             override fun onError(e: Throwable?) {
                 e?.printStackTrace()
                 play_swipe.isRefreshing = false
-                Toast.makeText(applicationContext,"获取用户歌单失败",Toast.LENGTH_SHORT).show()
+                this@MainActivity.toast("获取用户歌单失败")
             }
 
         }

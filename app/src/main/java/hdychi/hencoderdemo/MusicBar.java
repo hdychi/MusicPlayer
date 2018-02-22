@@ -38,7 +38,7 @@ public class MusicBar extends View {
         paint.setColor(Color.RED);
         paint.setStrokeWidth(20);
         paint.setStrokeCap(Paint.Cap.ROUND);
-        float maxW = this.getWidth() - startX;
+        float maxW = this.getWidth() - 2 * startX;
         float endX = startX + maxW * progress;
         int percent = (int)Math.ceil(progress * 100);
         for(int i = 0;i < percent;i++){

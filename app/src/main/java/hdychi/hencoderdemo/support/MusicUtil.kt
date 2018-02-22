@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.support
 
 import android.content.Context
 import android.net.Uri
@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.content.ContentUris
+import hdychi.hencoderdemo.R
+import hdychi.hencoderdemo.bean.ArItem
 import hdychi.hencoderdemo.bean.Artist
 import hdychi.hencoderdemo.bean.Mp3Info
 import java.io.FileDescriptor
@@ -222,6 +224,14 @@ object MusicUtil{
     }
 
     fun getArtistsStr(artists : List<Artist>?) : String{
+        var res = ""
+        artists?.forEach { t -> res += t.name + "、" }
+        if (res.isNotEmpty()){
+            res = res.substring(0,res.length - 1)
+        }
+        return res
+    }
+    fun getArStr(artists : List<ArItem>?) : String{
         var res = ""
         artists?.forEach { t -> res += t.name + "、" }
         if (res.isNotEmpty()){

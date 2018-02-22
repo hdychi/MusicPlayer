@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.ui.activities
 
 import android.content.Intent
 import android.net.Uri
@@ -7,10 +7,16 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.Toolbar
 import android.view.View
 import android.widget.Toast
+import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.DemoApp
+import hdychi.hencoderdemo.R
+import hdychi.hencoderdemo.ui.adapters.SongListAdapter
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.Result
 import hdychi.hencoderdemo.bean.SpacesItemDecoration
 import hdychi.hencoderdemo.interfaces.OnItemClickListener
+import hdychi.hencoderdemo.support.isInTask
+import hdychi.hencoderdemo.support.toast
 import kotlinx.android.synthetic.main.activity_song_list.*
 import rx.Subscriber
 
@@ -26,11 +32,21 @@ class SongListActivity : BaseActivity() {
         song_list_recycler.adapter = mAdapter
         song_list_recycler.addItemDecoration(SpacesItemDecoration(2))
         mAdapter.onItemClickListener = OnItemClickListener { index ->  jump(index)}
+        fab.setOnClickListener {
+            val intent = Intent(applicationContext,PlayNetActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            if (intent.isInTask(this@SongListActivity)){
+                startActivity(intent)
+            }
+            else{
+                this@SongListActivity.toast("没有音乐在播放！")
+            }
+        }
         refresh()
     }
     private fun refresh(){
         if(id == -1){
-            Toast.makeText(applicationContext,"歌单无效！",Toast.LENGTH_SHORT).show()
+            this.toast("歌单无效！")
             return
         }
 
@@ -48,18 +64,19 @@ class SongListActivity : BaseActivity() {
             override fun onCompleted() {}
 
             override fun onError(e: Throwable?) {
-                Toast.makeText(applicationContext,"加载歌单失败",Toast.LENGTH_SHORT).show()
+                this@SongListActivity.toast("加载歌单失败")
                 loading?.text = "加载失败"
             }
         }
         ApiProvider().getSongs(subscriber,id)
     }
     private fun jump(index : Int){
-        val intent = Intent(this, PlayLocalActivity::class.java)
+        val intent = Intent(this, PlayNetActivity::class.java)
         intent.putExtra("id",mAdapter.getItem(index).id)
-        CommonData.netMusicList.clear()
-        CommonData.netMusicList.addAll(mAdapter.mItems)
-        CommonData.mode = CommonData.NET
+        CommonData.setNetMusicList(mAdapter.mItems)
+        CommonData.setNowIndex(index)
+        DemoApp.lists.filter { t -> t is PlayNetActivity }
+                .forEach { t -> t.finish() }
         startActivity(intent)
     }
 }

@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.ui.activities
 
 import android.content.ComponentName
 import android.content.Context
@@ -9,8 +9,12 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import hdychi.hencoderdemo.PlayLocalService
+import hdychi.hencoderdemo.PlayService
+import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.interfaces.OnChangeListener
-import kotlinx.android.synthetic.main.activity_play.*
+import kotlinx.android.synthetic.main.activity_play_local.*
+import kotlinx.android.synthetic.main.play_bottom.*
 import kotlinx.coroutines.experimental.*
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
@@ -45,15 +49,15 @@ class PlayLocalActivity : AppCompatActivity(), OnChangeListener {
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            playLocalService = (service as PlayLocalService.MyBinder)
-                    .getService(this@PlayLocalActivity)
-            onChange()
+            playLocalService = (service as PlayService.MyBinder)
+                    .getService(this@PlayLocalActivity,
+                            PlayLocalService::class.java.name) as PlayLocalService
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_play)
-        var intent = Intent(this, PlayLocalService::class.java)
+        setContentView(R.layout.activity_play_local)
+        val intent = Intent(this, PlayLocalService::class.java)
         bindService(intent,connection,Context.BIND_AUTO_CREATE)
         initListener()
     }
@@ -78,15 +82,17 @@ class PlayLocalActivity : AppCompatActivity(), OnChangeListener {
         super.onResume()
         handler.sendEmptyMessage(0)
     }
-    override fun onChange() {
+
+    override fun onChangeSong() {
+
         Log.i("接口","调用")
-        Observable.just(playLocalService?.pic)
+        Observable.just(playLocalService?.getPic())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     t -> album_pic.setImageBitmap(t)
-                    song_name.text = playLocalService?.currentSong?.title
-                    album_name.text = playLocalService?.currentSong?.album
+                    song_name.text = playLocalService?.getCurrentSong()?.title
+                    album_name.text = playLocalService?.getCurrentSong()?.album
                 }
     }
     private suspend fun refresh(){

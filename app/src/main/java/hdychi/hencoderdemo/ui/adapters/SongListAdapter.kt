@@ -1,14 +1,14 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.ui.adapters
 
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import hdychi.hencoderdemo.support.MusicUtil
+import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.OnItemClickListener
-import kotlin.math.min
 
 class SongListAdapter : RecyclerView.Adapter<SongListAdapter.SongListVH>(){
     val mItems = mutableListOf<TracksItem>()
@@ -24,7 +24,6 @@ class SongListAdapter : RecyclerView.Adapter<SongListAdapter.SongListVH>(){
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): SongListVH {
         val view = LayoutInflater.from(parent?.context)
                 .inflate(R.layout.song_list_item,parent,false)
-        Log.i("列表加载","执行1")
         return SongListVH(view)
     }
 
@@ -33,19 +32,21 @@ class SongListAdapter : RecyclerView.Adapter<SongListAdapter.SongListVH>(){
     override fun onBindViewHolder(holder: SongListVH?, position: Int) {
         val nowItem = mItems[position]
         holder?.songOrder?.text = (position + 1).toString()
-        holder?.title?.text = nowItem.name
+        holder?.title?.text = when(nowItem.name.length > 20){
+            true -> nowItem.name.substring(0,17) + "..."
+            false -> nowItem.name
+        }
         var singers = MusicUtil.getArtistsStr(nowItem.artists)
         singers += "-" + nowItem.album?.name
-        if(singers.length>17){
+        if(singers.length>20){
             singers = singers.substring(0, 17)
             singers += "..."
         }
         holder?.artist?.text = singers
-        Log.i("列表加载","执行")
         holder?.mItemView?.setOnClickListener { onItemClickListener?.onClick(position) }
     }
 
-    class SongListVH(itemView : View) : RecyclerView.ViewHolder(itemView){
+    inner class SongListVH(itemView : View) : RecyclerView.ViewHolder(itemView){
         val mItemView : View
         val songOrder : TextView
         val title : TextView

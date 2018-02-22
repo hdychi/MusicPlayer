@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.fragments.AlbumFragment"
+    android:padding="20dp"
+    android:background="@android:color/transparent">
+
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_centerInParent="true"
+        fresco:roundAsCircle="true"
+        fresco:backgroundImage="@color/black"
+        fresco:roundingBorderColor="@color/black"
+        fresco:roundingBorderWidth="30dp"
+        android:id="@+id/frag_song_pic"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:layout_weight="1">
+            <Button
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/like"
+                android:id="@+id/frag_love_btn"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_horizontal">
+            <Button
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/comment"
+                android:id="@+id/frag_cmt_btn"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>

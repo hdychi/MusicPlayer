@@ -6,14 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
-    tools:context=".SongListActivity"
+    tools:context=".ui.activities.SongListActivity"
     android:fitsSystemWindows="true"
     android:background="@color/grey">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:elevation="0dp">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -35,6 +36,7 @@
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
         android:visibility="gone"
         android:id="@+id/scrollView">
         <LinearLayout

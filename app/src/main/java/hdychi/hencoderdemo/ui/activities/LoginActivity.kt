@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,10 +6,11 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
-import com.orhanobut.hawk.Hawk
+import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.UserBean
-import hdychi.hencoderdemo.main.MainActivity
+import hdychi.hencoderdemo.support.toast
 import kotlinx.android.synthetic.main.activity_login.*
 import rx.Subscriber
 
@@ -17,8 +18,7 @@ class LoginActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-        if(Hawk.get("isLogin",false)){
+        if(CommonData.isLogin()){
            jump()
         }
         loginButton.setOnClickListener { login() }
@@ -26,15 +26,15 @@ class LoginActivity : AppCompatActivity(){
     private fun login(){
         val subscriber = object : Subscriber<UserBean>(){
             override fun onNext(t: UserBean?) {
-                Hawk.put("isLogin",true)
-                Hawk.put("user",t)
+                CommonData.setUser(t)
+                CommonData.setLogin(true)
                 jump()
             }
 
             override fun onCompleted() {}
 
             override fun onError(e: Throwable?) {
-                Toast.makeText(applicationContext,"登录失败",Toast.LENGTH_SHORT).show()
+                this@LoginActivity.toast("登录失败")
                 e?.printStackTrace()
             }
         }
@@ -42,11 +42,11 @@ class LoginActivity : AppCompatActivity(){
         client.getUser(subscriber,phoneText.text.toString(),pwdText.text.toString())
     }
     private fun jump(){
-        CommonData.user = Hawk.get("user")
-        if(CommonData.user==null){
+
+        if(CommonData.getUser() ==null){
             return
         }
-        Log.i("用户数据", Gson().toJson(CommonData.user))
+        Log.i("用户数据", Gson().toJson(CommonData.getUser()))
         val intent = Intent();
         intent.setClass(this, MainActivity::class.java)
         startActivity(intent)

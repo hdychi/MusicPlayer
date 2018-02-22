@@ -1,9 +1,12 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.support.MusicUtil
+import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.bean.Mp3Info
 
 import rx.Observable
@@ -18,8 +21,7 @@ class WelcomeActivity : AppCompatActivity(){
         setContentView(R.layout.activity_welcome)
         val subscriber = object : Subscriber< MutableList<Mp3Info>>(){
             override fun onNext(t: MutableList<Mp3Info>?) {
-                CommonData.localMusicList.clear()
-                CommonData.localMusicList.addAll(t!!.toList())
+                CommonData.setLocalMusicList(t!!.toList())
                 jumpToMain()
                 Toast.makeText(applicationContext,"加载文件完成",Toast.LENGTH_SHORT)
             }

@@ -14,25 +14,29 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PlayLocalActivity" />
-        <activity android:name=".WelcomeActivity" />
-        <activity android:name=".LoginActivity">
+        <activity android:name=".ui.activities.PlayLocalActivity" />
+        <activity android:name=".ui.activities.WelcomeActivity" />
+        <activity android:name=".ui.activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".main.MainActivity" />
-        <activity android:name=".SongListActivity">
+        <activity android:name=".ui.activities.MainActivity" />
+        <activity android:name=".ui.activities.SongListActivity">
             <intent-filter>
                 <action android:name="playList"/>
+
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <service android:name=".PlayLocalService" />
 
-
+        <activity android:name=".ui.activities.PlayNetActivity"
+            android:launchMode="singleInstance"/>
+        <activity android:name=".ui.activities.CommentActivity"/>
+        <service android:name=".PlayNetService"/>
+        <service android:name=".PlayLocalService"/>
     </application>
 
 </manifest>
