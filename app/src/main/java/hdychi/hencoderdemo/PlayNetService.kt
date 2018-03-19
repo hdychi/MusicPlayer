@@ -1,5 +1,6 @@
 package hdychi.hencoderdemo
 
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,12 +9,14 @@ import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.provider.MediaStore
+import android.support.v4.app.NotificationCompat
 import android.util.Log
 import android.widget.Toast
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.Mp3Info
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.OnChangeListener
+import hdychi.hencoderdemo.support.toast
 import rx.Observable
 import rx.Subscriber
 
@@ -24,7 +27,6 @@ class PlayNetService : Service() {
     var onPreparedListener : MediaPlayer.OnPreparedListener? = null
 
     override fun onBind(p0: Intent?): IBinder {
-
         return MyBinder()
     }
     fun resetPlayer(listener: MediaPlayer.OnPreparedListener) {
@@ -43,12 +45,11 @@ class PlayNetService : Service() {
             override fun onCompleted() {}
 
             override fun onError(e: Throwable?) {
-                Toast.makeText(applicationContext,"网络错误",
-                        Toast.LENGTH_SHORT).show()
+                applicationContext.toast("播放失败")
             }
 
         }
-        ApiProvider().getMusicUrl(subscriber,
+        ApiProvider.getMusicUrl(subscriber,
                 CommonData.getNetMusicList()[CommonData.getNowIndex()].id)
 
     }
@@ -89,6 +90,10 @@ class PlayNetService : Service() {
         mediaPlayer?.reset()
         mediaPlayer?.release()
         mediaPlayer = null
+    }
+    private fun showNotification(){
+        val mBuilder = NotificationCompat.Builder(this)
+
     }
     inner class MyBinder : Binder() {
         internal fun getService(listener: MediaPlayer.OnPreparedListener)

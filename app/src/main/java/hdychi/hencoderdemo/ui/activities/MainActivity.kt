@@ -129,10 +129,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             }
 
         }
-        ApiProvider().getPlayLists(subscriber)
+        ApiProvider.getPlayLists(subscriber)
     }
     private fun jump(index : Int){
-        var intent = Intent()
+        val intent = Intent()
         intent.action = "playList"
         intent.putExtra("id",mAdapter.get(index).id)
         startActivity(intent)

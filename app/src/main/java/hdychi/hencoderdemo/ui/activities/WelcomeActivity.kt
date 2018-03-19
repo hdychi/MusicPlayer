@@ -8,6 +8,7 @@ import hdychi.hencoderdemo.CommonData
 import hdychi.hencoderdemo.support.MusicUtil
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.bean.Mp3Info
+import hdychi.hencoderdemo.support.toast
 
 import rx.Observable
 import rx.Subscriber
@@ -22,14 +23,14 @@ class WelcomeActivity : AppCompatActivity(){
         val subscriber = object : Subscriber< MutableList<Mp3Info>>(){
             override fun onNext(t: MutableList<Mp3Info>?) {
                 CommonData.setLocalMusicList(t!!.toList())
+                applicationContext.toast("登录成功")
                 jumpToMain()
-                Toast.makeText(applicationContext,"加载文件完成",Toast.LENGTH_SHORT)
             }
             override fun onCompleted() {
 
             }
             override fun onError(e: Throwable?) {
-                Toast.makeText(applicationContext,"加载文件错误",Toast.LENGTH_SHORT)
+                applicationContext.toast("加载文件错误")
             }
 
         }
@@ -40,7 +41,7 @@ class WelcomeActivity : AppCompatActivity(){
                 .subscribe(subscriber)
     }
     fun jumpToMain(){
-        var intent = Intent()
+        val intent = Intent()
         intent.setClass(this, PlayLocalActivity::class.java)
         startActivity(intent)
         finish()

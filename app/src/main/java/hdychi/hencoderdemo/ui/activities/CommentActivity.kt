@@ -65,7 +65,7 @@ class CommentActivity : BaseActivity(){
             }
 
         }
-        ApiProvider().getSongDetail(subscriber,id)
+        ApiProvider.getSongDetail(subscriber,id)
     }
     private fun getData(id : Int){
         isLoading = true
@@ -90,6 +90,6 @@ class CommentActivity : BaseActivity(){
             }
 
         }
-       ApiProvider().getSongComment(subscriber,id,DEFAUT_LIMIT,page * DEFAUT_LIMIT)
+       ApiProvider.getSongComment(subscriber,id,DEFAUT_LIMIT,page * DEFAUT_LIMIT)
     }
 }

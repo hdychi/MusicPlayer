@@ -52,7 +52,7 @@ class LyricFrament : Fragment() {
             }
 
         }
-        ApiProvider().getLyric(subscriber,id?:0)
+        ApiProvider.getLyric(subscriber,id?:0)
         lrcView?.setOnLrcClickListener { onLyricPressed() }
         lrcView?.setOnSeekToListener(onSeekToListener)
         return res

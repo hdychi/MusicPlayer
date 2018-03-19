@@ -38,8 +38,8 @@ class LoginActivity : AppCompatActivity(){
                 e?.printStackTrace()
             }
         }
-        val client = ApiProvider()
-        client.getUser(subscriber,phoneText.text.toString(),pwdText.text.toString())
+
+        ApiProvider.getUser(subscriber,phoneText.text.toString(),pwdText.text.toString())
     }
     private fun jump(){
 
@@ -47,7 +47,7 @@ class LoginActivity : AppCompatActivity(){
             return
         }
         Log.i("用户数据", Gson().toJson(CommonData.getUser()))
-        val intent = Intent();
+        val intent = Intent()
         intent.setClass(this, MainActivity::class.java)
         startActivity(intent)
         finish()

@@ -65,7 +65,7 @@ class AlbumFragment : Fragment(),OnPauseMusicListener{
             }
 
         }
-        ApiProvider().getSongDetail(subscriber,id?:0)
+        ApiProvider.getSongDetail(subscriber,id?:0)
         return res
     }
 

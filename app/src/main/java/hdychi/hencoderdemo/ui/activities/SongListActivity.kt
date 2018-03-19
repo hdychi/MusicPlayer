@@ -68,7 +68,7 @@ class SongListActivity : BaseActivity() {
                 loading?.text = "加载失败"
             }
         }
-        ApiProvider().getSongs(subscriber,id)
+        ApiProvider.getSongs(subscriber,id)
     }
     private fun jump(index : Int){
         val intent = Intent(this, PlayNetActivity::class.java)
