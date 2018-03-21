@@ -7,9 +7,11 @@ import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
 import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.UserBean
+import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.toast
 import kotlinx.android.synthetic.main.activity_login.*
 import rx.Subscriber
@@ -23,23 +25,20 @@ class LoginActivity : AppCompatActivity(){
         }
         loginButton.setOnClickListener { login() }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ApiProvider.unSubscribe(this)
+    }
     private fun login(){
-        val subscriber = object : Subscriber<UserBean>(){
-            override fun onNext(t: UserBean?) {
-                CommonData.setUser(t)
-                CommonData.setLogin(true)
-                jump()
-            }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                this@LoginActivity.toast("登录失败")
-                e?.printStackTrace()
-            }
+        val subscriber = CommonSubscriber<UserBean>(this,"登录失败")
+        subscriber.onSuccessController = OnSuccessController { t ->
+            CommonData.setUser(t)
+            CommonData.setLogin(true)
+            jump()
         }
 
-        ApiProvider.getUser(subscriber,phoneText.text.toString(),pwdText.text.toString())
+        ApiProvider.getUser(this,subscriber,phoneText.text.toString(),pwdText.text.toString())
     }
     private fun jump(){
 

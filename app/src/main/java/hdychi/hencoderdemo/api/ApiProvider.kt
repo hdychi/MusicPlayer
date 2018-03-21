@@ -16,6 +16,9 @@ import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
+import rx.subscriptions.CompositeSubscription
+
+
 
 
 object ApiProvider{
@@ -32,52 +35,74 @@ object ApiProvider{
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     val mService = mRetrofit.create(Api::class.java)
-    val subscriptions = mutableListOf<Subscription>()
-    fun getUser(subscriber: Subscriber<UserBean>,userName : String,pwd : String){
+    val mSubscriptionsMap = mutableMapOf<Any, CompositeSubscription>()
+
+    fun unSubscribe(tag : Any) {
+
+        val subscriptions = mSubscriptionsMap[tag]
+        subscriptions?.unsubscribe()
+        mSubscriptionsMap.remove(tag)
+    }
+
+    fun addSubscription(tag : Any, subscription : Subscription ) {
+
+        var subscriptions = CompositeSubscription()
+        if (mSubscriptionsMap.containsKey(tag)) {
+            subscriptions = mSubscriptionsMap[tag]!!
+        }
+
+        subscriptions.add(subscription)
+
+        mSubscriptionsMap[tag] = subscriptions
+
+    }
+    fun getUser(tag : Any,subscriber: Subscriber<UserBean>,userName : String,pwd : String){
         mService.login(userName,pwd)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
     }
 
-    fun getPlayLists(subscriber: Subscriber<MutableList<PlaylistItem>>){
+    fun getPlayLists(tag : Any,subscriber: Subscriber<MutableList<PlaylistItem>>){
         mService.getPlayLists(CommonData.getUser()?.profile?.userId)
                 .filter{t -> t != null}
                 .map { t -> t.playlist as MutableList}
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
 
-    fun getSongs(subscriber: Subscriber<Result>,id : Int){
+    fun getSongs(tag : Any, subscriber: Subscriber<Result>,id : Int){
         mService.getListDetail(id)
                 .filter { t -> t.code / 100 == 2|| t.code / 100 ==3 }
                 .map { t -> t.result }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
-    fun getMusicUrl(subscriber: Subscriber<String>,id :Int){
+    fun getMusicUrl(tag : Any,subscriber: Subscriber<String>,id :Int){
         mService.getMusicUrl(id)
                 .map { t -> t.data!!.first().url }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
     }
-    fun getSongDetail(subscriber: Subscriber<SongsItem>,id : Int){
+    fun getSongDetail(tag : Any,subscriber: Subscriber<SongsItem>,id : Int){
         mService.getSongDetail(id)
                 .map { t -> t.songs!!.first() }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
     }
-    fun getSongComment(subscriber : Subscriber<CommentResponse>,id : Int,limit : Int,offset : Int){
+    fun getSongComment(tag : Any,subscriber : Subscriber<CommentResponse>,id : Int,limit : Int,offset : Int){
         mService.getSongComment(id,limit,offset)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
     }
-    fun getLyric(subscriber: Subscriber<String>,id : Int){
+    fun getLyric(tag : Any,subscriber: Subscriber<String>,id : Int){
         mService.getLyric(id)
                 .map { t -> t.lrc!!.lyric }
                 .subscribeOn(Schedulers.io())

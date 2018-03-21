@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.support.MusicUtil
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.bean.Mp3Info

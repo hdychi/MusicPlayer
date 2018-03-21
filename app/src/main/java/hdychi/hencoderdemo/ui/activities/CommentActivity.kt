@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.support.v4.widget.NestedScrollView
 import android.support.v7.widget.Toolbar
 import android.view.View
-import android.widget.Toast
+import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.ILinearLayoutManager
 import hdychi.hencoderdemo.support.MusicUtil
 import hdychi.hencoderdemo.R
@@ -12,10 +12,14 @@ import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.CommentResponse
 import hdychi.hencoderdemo.bean.SongsItem
 import hdychi.hencoderdemo.bean.SpacesItemDecoration
+import hdychi.hencoderdemo.interfaces.OnEndController
+import hdychi.hencoderdemo.interfaces.OnErrorController
+import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.toast
 import hdychi.hencoderdemo.ui.adapters.CommentAdapter
 import kotlinx.android.synthetic.main.activity_comment.*
 import rx.Subscriber
+import rx.exceptions.OnErrorNotImplementedException
 
 class CommentActivity : BaseActivity(){
     override fun getContentViewId() = R.layout.activity_comment
@@ -50,46 +54,34 @@ class CommentActivity : BaseActivity(){
         initSongInf(id?:-1)
     }
     private fun initSongInf(id : Int){
-        val subscriber = object : Subscriber<SongsItem>(){
-            override fun onNext(t: SongsItem) {
-                song_pic.setImageURI(t.al?.picUrl)
-                activity_cmt_nickname.text = t.name
-                activity_cmt_artist.text = MusicUtil.getArStr(t.ar)
-            }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                this@CommentActivity.toast("获取歌曲失败")
-                loading.text = "加载失败"
-            }
-
+        val subscriber = CommonSubscriber<SongsItem>(this,"获取歌曲失败")
+        subscriber.onSuccessController = OnSuccessController {t ->
+            song_pic.setImageURI(t.al?.picUrl)
+            activity_cmt_nickname.text = t.name
+            activity_cmt_artist.text = MusicUtil.getArStr(t.ar)
         }
-        ApiProvider.getSongDetail(subscriber,id)
+        subscriber.onErrorController = OnErrorController {
+            loading.text = "加载失败"
+        }
+
+        ApiProvider.getSongDetail(this,subscriber,id)
     }
     private fun getData(id : Int){
         isLoading = true
-        val subscriber = object : Subscriber<CommentResponse>(){
-            override fun onNext(t: CommentResponse) {
-                if(page == 0){
-                    goodCmtAdapter.addAll(t.hotComments)
-                    loading.visibility = View.GONE
-                    scrollView.visibility = View.VISIBLE
-                }
-                newCmtAdapter.appendAll(t.comments)
-                isLoading = false
-                page++
+        val subscriber = CommonSubscriber<CommentResponse>(this,"获取评论失败")
+        subscriber.onSuccessController = OnSuccessController { t ->
+            if(page == 0){
+                goodCmtAdapter.addAll(t.hotComments)
+                loading.visibility = View.GONE
+                scrollView.visibility = View.VISIBLE
             }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-               e?.printStackTrace()
-               isLoading = false
-                this@CommentActivity.toast("获取评论失败")
-            }
-
+            newCmtAdapter.appendAll(t.comments)
+            page++
         }
-       ApiProvider.getSongComment(subscriber,id,DEFAUT_LIMIT,page * DEFAUT_LIMIT)
+        subscriber.onEndController = OnEndController {
+            isLoading = false
+        }
+
+       ApiProvider.getSongComment(this,subscriber,id,DEFAUT_LIMIT,page * DEFAUT_LIMIT)
     }
 }

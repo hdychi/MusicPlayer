@@ -8,11 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.CommonSubscriber
 
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.interfaces.OnFragmentClickListener
 import hdychi.hencoderdemo.interfaces.OnSeekToListener
+import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.lrc.LrcUtil
 import hdychi.hencoderdemo.lrc.LrcView
 import hdychi.hencoderdemo.support.toast
@@ -39,20 +41,11 @@ class LyricFrament : Fragment() {
                               savedInstanceState: Bundle?): View? {
         val res = inflater.inflate(R.layout.fragment_lyric_frament, container, false)
         lrcView = res.findViewById<LrcView>(R.id.lrc_view)
-        val subscriber = object : Subscriber<String>(){
-            override fun onNext(t: String?) {
-                lrcView?.setLrcRows(LrcUtil.getLrcRows(t))
-            }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                e?.printStackTrace()
-                activity?.toast("获取歌词错误")
-            }
-
+        val subscriber = CommonSubscriber<String>(activity as Context,"获取歌词错误")
+        subscriber.onSuccessController = OnSuccessController { t ->
+            lrcView?.setLrcRows(LrcUtil.getLrcRows(t))
         }
-        ApiProvider.getLyric(subscriber,id?:0)
+        ApiProvider.getLyric(this,subscriber,id?:0)
         lrcView?.setOnLrcClickListener { onLyricPressed() }
         lrcView?.setOnSeekToListener(onSeekToListener)
         return res

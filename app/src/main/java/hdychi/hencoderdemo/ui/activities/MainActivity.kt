@@ -30,7 +30,10 @@ import android.app.ActivityManager.RunningTaskInfo
 import android.app.ActivityManager
 import android.content.Context
 import android.support.v7.widget.Toolbar
+import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.DemoApp
+import hdychi.hencoderdemo.interfaces.OnEndController
+import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.isInTask
 import hdychi.hencoderdemo.support.toast
 
@@ -114,22 +117,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
     private fun refresh(){
         play_swipe.isRefreshing = true
-        val subscriber = object : Subscriber<MutableList<PlaylistItem>>(){
-            override fun onNext(t: MutableList<PlaylistItem>?) {
-                mAdapter.addAll(t!!)
-                play_swipe.isRefreshing = false
-            }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                e?.printStackTrace()
-                play_swipe.isRefreshing = false
-                this@MainActivity.toast("获取用户歌单失败")
-            }
-
+        val subscriber = CommonSubscriber<MutableList<PlaylistItem>>(this,"获取用户歌单失败")
+        subscriber.onSuccessController = OnSuccessController { t ->
+            mAdapter.addAll(t!!)
         }
-        ApiProvider.getPlayLists(subscriber)
+        subscriber.onEndController = OnEndController {
+            play_swipe.isRefreshing = false
+        }
+
+        ApiProvider.getPlayLists(this,subscriber)
     }
     private fun jump(index : Int){
         val intent = Intent()

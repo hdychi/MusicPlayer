@@ -14,11 +14,13 @@ import android.widget.Toast
 import com.facebook.drawee.view.SimpleDraweeView
 import hdychi.hencoderdemo.ui.activities.CommentActivity
 import hdychi.hencoderdemo.CommonData
+import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.SongsItem
 import hdychi.hencoderdemo.interfaces.OnFragmentClickListener
 import hdychi.hencoderdemo.interfaces.OnPauseMusicListener
+import hdychi.hencoderdemo.interfaces.OnSuccessController
 import rx.Subscriber
 
 private const val ARG_PARAM1 = "id"
@@ -52,20 +54,12 @@ class AlbumFragment : Fragment(),OnPauseMusicListener{
         animator?.repeatCount = -1
         animator?.start()
         animator?.pause()
-        val subscriber = object : Subscriber<SongsItem>(){
-            override fun onNext(t: SongsItem?) {
-                album_pic.setImageURI(t?.al?.picUrl)
-            }
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                e?.printStackTrace()
-                Toast.makeText(activity,"获取歌曲详情失败",
-                        Toast.LENGTH_SHORT).show()
-            }
-
+        val subscriber = CommonSubscriber<SongsItem>(activity as Context,"获取歌曲详情失败")
+        subscriber.onSuccessController = OnSuccessController { t ->
+            album_pic.setImageURI(t?.al?.picUrl)
         }
-        ApiProvider.getSongDetail(subscriber,id?:0)
+
+        ApiProvider.getSongDetail(this,subscriber,id?:0)
         return res
     }
 
