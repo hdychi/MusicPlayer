@@ -2,6 +2,7 @@ package hdychi.hencoderdemo
 
 import android.app.Notification
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaPlayer
@@ -24,7 +25,6 @@ import rx.Subscriber
 class PlayNetService : Service() {
 
     var mediaPlayer : MediaPlayer? = MediaPlayer()
-    var onPreparedListener : MediaPlayer.OnPreparedListener? = null
 
     override fun onBind(p0: Intent?): IBinder {
         return MyBinder()
@@ -49,7 +49,7 @@ class PlayNetService : Service() {
             }
 
         }
-        ApiProvider.getMusicUrl(subscriber,
+        ApiProvider.getMusicUrl(this,subscriber,
                 CommonData.getNetMusicList()[CommonData.getNowIndex()].id)
 
     }
@@ -92,13 +92,12 @@ class PlayNetService : Service() {
         mediaPlayer = null
     }
     private fun showNotification(){
-        val mBuilder = NotificationCompat.Builder(this)
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE)
 
     }
     inner class MyBinder : Binder() {
         internal fun getService(listener: MediaPlayer.OnPreparedListener)
                 : PlayNetService {
-            this@PlayNetService.onPreparedListener = listener
             return PlayNetService()
 
         }

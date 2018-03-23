@@ -11,6 +11,7 @@ import hdychi.hencoderdemo.CommonSubscriber
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.UserBean
+import hdychi.hencoderdemo.interfaces.OnEndController
 import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.toast
 import kotlinx.android.synthetic.main.activity_login.*
@@ -31,13 +32,16 @@ class LoginActivity : AppCompatActivity(){
         ApiProvider.unSubscribe(this)
     }
     private fun login(){
+        loginButton.isActivated = false
         val subscriber = CommonSubscriber<UserBean>(this,"登录失败")
         subscriber.onSuccessController = OnSuccessController { t ->
             CommonData.setUser(t)
             CommonData.setLogin(true)
             jump()
         }
-
+        subscriber.onEndController = OnEndController {
+            loginButton.isActivated = true
+        }
         ApiProvider.getUser(this,subscriber,phoneText.text.toString(),pwdText.text.toString())
     }
     private fun jump(){

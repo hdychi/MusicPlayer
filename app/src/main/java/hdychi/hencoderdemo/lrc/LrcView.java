@@ -191,8 +191,9 @@ public class LrcView extends View{
                 onSeekToListener.onSeekTo(timeSecs);
             }
         }
+
         for(int i = mLrcRows.size() - 1;i >= 0;i--){
-            if(mLrcRows.get(i).getTime() < timeSecs){
+            if(mLrcRows.get(i).getTime() < timeSecs || i == 0){
                 mCurRow = i;
                 if(!isFromSelf){
                     if(!mScroller.isFinished()){
@@ -225,7 +226,7 @@ public class LrcView extends View{
             mScroller.forceFinished(true);
         }
         mLrcRows = null;
-        scrollTo(getScrollX(), 0);
+        scrollTo(getScrollX(), - getHeight() / 2);
         invalidate();
     }
     @Override

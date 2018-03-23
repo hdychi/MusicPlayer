@@ -20,7 +20,9 @@ public class CommonData {
     private static List<TracksItem> netMusicList = new ArrayList<>();
     private static int nowIndex = 0;
 
-
+    public static int getNetNowItemID(){
+        return netMusicList.get(nowIndex).getId();
+    }
     public static UserBean getUser() {
         user = Hawk.get("user");
         return user;

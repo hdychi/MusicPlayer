@@ -1,10 +1,7 @@
 package hdychi.hencoderdemo.ui.activities
 
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
@@ -35,7 +32,6 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
     var onPauseMusicListener : OnPauseMusicListener? = null
     private val time = SimpleDateFormat("mm:ss")
     private var mIntent = Intent()
-    private var id = 0
     private var activeFragment : Fragment = AlbumFragment.newInstance(0)
     private val handler = Handler{_ ->
         if(playNetService?.mediaPlayer!=null){
@@ -74,11 +70,10 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        id = intent?.getIntExtra("id",-1)?:-1
         mIntent.setClass(this, PlayNetService::class.java)
         bindService(mIntent,connection, Context.BIND_AUTO_CREATE)
         initDisplay()
-        initFrag(id,CommonData.ALBUM_FRAGMENT_ID)
+        initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
         initListener()
     }
 
@@ -155,18 +150,16 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
     //TODO:切换fragment
     override fun onFragmentClick(pos : Int) {
         when(pos){
-            CommonData.ALBUM_FRAGMENT_ID -> initFrag(id,CommonData.LYRIC_FRAGMENT_ID)
-            CommonData.LYRIC_FRAGMENT_ID -> initFrag(id,CommonData.ALBUM_FRAGMENT_ID)
+            CommonData.ALBUM_FRAGMENT_ID -> initFrag(CommonData.getNetNowItemID(),CommonData.LYRIC_FRAGMENT_ID)
+            CommonData.LYRIC_FRAGMENT_ID -> initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
         }
     }
     override fun onSeekTo(timeSecs: Int) {
         playNetService?.mediaPlayer?.seekTo(timeSecs)
     }
     override fun onChangeSong() {
-        val nowItem  = CommonData.getNetMusicList()[CommonData.getNowIndex()]
-        id = nowItem.id
         initDisplay()
-        initFrag(id,CommonData.ALBUM_FRAGMENT_ID)
+        initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
         play.background = getDrawable(R.drawable.loading)
     }
 
