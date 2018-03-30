@@ -35,8 +35,10 @@
         <activity android:name=".ui.activities.PlayNetActivity"
             android:launchMode="singleInstance"/>
         <activity android:name=".ui.activities.CommentActivity"/>
-        <service android:name=".PlayNetService"/>
-        <service android:name=".PlayLocalService"/>
+        <service android:name=".PlayNetService"
+            android:process=":media"/>
+        <service android:name=".PlayLocalService"
+            android:process=":media"/>
     </application>
 
 </manifest>
