@@ -5,6 +5,7 @@ import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 
 fun Context.toast(text : String){
@@ -12,6 +13,9 @@ fun Context.toast(text : String){
 }
 fun Activity.toast(text: String){
     Toast.makeText(this,text,Toast.LENGTH_SHORT).show()
+}
+fun MyLog(text: String){
+    Log.i("测试",text)
 }
 fun Intent.isInTask(context: Context) : Boolean{
     val cmpName : ComponentName?= this.resolveActivity(context.packageManager)

@@ -8,6 +8,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v4.app.Fragment
 import android.support.v7.widget.Toolbar
+import android.util.Log
+import com.orhanobut.logger.Logger
 import hdychi.hencoderdemo.*
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.OnChangeListener
@@ -15,6 +17,7 @@ import hdychi.hencoderdemo.interfaces.OnFragmentClickListener
 import hdychi.hencoderdemo.interfaces.OnPauseMusicListener
 import hdychi.hencoderdemo.interfaces.OnSeekToListener
 import hdychi.hencoderdemo.support.MusicUtil
+import hdychi.hencoderdemo.support.toast
 import hdychi.hencoderdemo.ui.fragments.AlbumFragment
 import hdychi.hencoderdemo.ui.fragments.LyricFrament
 import kotlinx.android.synthetic.main.activity_play_net.*
@@ -28,31 +31,36 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         MediaPlayer.OnPreparedListener,OnSeekToListener{
 
 
-    var playNetService : PlayNetService?= null
+    var playNetService : MediaAidlInterface? = null
     var onPauseMusicListener : OnPauseMusicListener? = null
     private val time = SimpleDateFormat("mm:ss")
     private var mIntent = Intent()
     private var activeFragment : Fragment = AlbumFragment.newInstance(0)
     private val handler = Handler{_ ->
-        if(playNetService?.mediaPlayer!=null){
-            val current = playNetService?.mediaPlayer?.currentPosition ?:0
-            nowTime.text = time.format(current)
-            val all = playNetService?.mediaPlayer?.duration ?: 0
-            allTime.text = time.format(all)
-            music_bar.progress= (current / all.toDouble()).toFloat()
-            if(playNetService?.mediaPlayer?.isPlaying?:false){
-                play.background = getDrawable(R.drawable.pause)
-            }
-            else{
-                play.background = getDrawable(R.drawable.play)
-            }
-            if(activeFragment is LyricFrament){
-                (activeFragment as LyricFrament)
-                        .takeIf { t -> !t.isDragging() }
-                        ?.refresh(playNetService?.mediaPlayer?.currentPosition?:0)
+
+        try{
+            if(playNetService!=null){
+                val current = playNetService!!.postion()
+                nowTime.text = time.format(current)
+                val all = playNetService!!.duration()
+                allTime.text = time.format(all)
+                music_bar.progress= (current / all.toDouble()).toFloat()
+                if(playNetService!!.isPlaying()){
+                    play.background = getDrawable(R.drawable.pause)
+                }
+                else{
+                    play.background = getDrawable(R.drawable.play)
+                }
+                if(activeFragment is LyricFrament){
+                    (activeFragment as LyricFrament)
+                            .takeIf { t -> !t.isDragging() }
+                            ?.refresh(current)
+                }
             }
         }
-
+        catch(e : IllegalStateException){
+            e.printStackTrace()
+        }
         true
     }
     private val connection : ServiceConnection = object : ServiceConnection {
@@ -61,16 +69,21 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            playNetService = (service as PlayNetService.MyBinder)
-                    .getService(this@PlayNetActivity)
-            playNetService?.resetPlayer(this@PlayNetActivity)
+            playNetService = MediaAidlInterface.Stub.asInterface(service)
+            playNetService?.reset()
+            Log.i("测试",playNetService?.info)
+            launch(CommonPool) {
+                while(true){
+                    refresh()
+                }
+            }
         }
     }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mIntent.setClass(this, PlayNetService::class.java)
+        mIntent = Intent(this,PlayNetService::class.java)
         bindService(mIntent,connection, Context.BIND_AUTO_CREATE)
         initDisplay()
         initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
@@ -79,14 +92,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
     override fun onResume() {
         super.onResume()
-        onPauseMusicListener?.onPauseMusic(playNetService?.mediaPlayer?.isPlaying?:false)
-    }
-    override fun onDestroy() {
-        super.onDestroy()
-        playNetService?.destroyPlayer()
-        stopService(mIntent)
-        unbindService(connection)
-
+        onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
     }
 
     override fun onBackPressed() {
@@ -99,38 +105,34 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
                     .replace(R.id.frame,frag)
                     .commit()
             onPauseMusicListener = frag
-            activeFragment = frag as Fragment
+            activeFragment = frag
         }
         else{
             val frag = LyricFrament.newInstance(id)
             supportFragmentManager.beginTransaction()
                     .replace(R.id.frame,frag)
                     .commit()
-            activeFragment = frag as Fragment
+            activeFragment = frag
         }
 
     }
     private fun initListener(){
 
         last.setOnClickListener {
-            playNetService?.lastSong(this)
+            playNetService?.prev()
             onChangeSong()
         }
         next.setOnClickListener {
-            playNetService?.nextSong(this)
+            playNetService?.next()
             onChangeSong()
         }
-        music_bar.setOnMoveListner { playNetService?.seekTime(music_bar.progress) }
+        music_bar.setOnMoveListner { playNetService?.seekProgress(music_bar.progress) }
         play.setOnClickListener {
-            playNetService?.playMusic()
-            onPauseMusicListener?.onPauseMusic(playNetService?.mediaPlayer?.isPlaying?:false)
+            playNetService?.playOrPause()
+            onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
         }
 
-        launch(CommonPool) {
-            while(true){
-                refresh()
-            }
-        }
+
     }
 
     private fun initDisplay(){
@@ -147,7 +149,6 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
             handler.sendEmptyMessage(0)
         }
     }
-    //TODO:切换fragment
     override fun onFragmentClick(pos : Int) {
         when(pos){
             CommonData.ALBUM_FRAGMENT_ID -> initFrag(CommonData.getNetNowItemID(),CommonData.LYRIC_FRAGMENT_ID)
@@ -155,7 +156,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         }
     }
     override fun onSeekTo(timeSecs: Int) {
-        playNetService?.mediaPlayer?.seekTo(timeSecs)
+        playNetService?.seekSec(timeSecs)
     }
     override fun onChangeSong() {
         initDisplay()
@@ -165,9 +166,21 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
     override fun onPrepared(p0: MediaPlayer?) {
 
-        playNetService?.mediaPlayer = p0!!
         onPauseMusicListener?.onPauseMusic(true)
     }
+
+    private val mDeathRecipient = object : IBinder.DeathRecipient {
+        override fun binderDied() {
+            if (playNetService == null) {
+                return
+            }
+            playNetService?.asBinder()?.unlinkToDeath(this, 0)
+            playNetService = null
+            this@PlayNetActivity.toast("服务死亡")
+            //TODO:重新绑定
+        }
+    }
+
     override fun getContentViewId(): Int = R.layout.activity_play_net
 
     override fun getToolBar(): Toolbar = toolbar

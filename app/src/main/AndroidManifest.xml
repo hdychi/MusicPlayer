@@ -36,7 +36,11 @@
             android:launchMode="singleInstance"/>
         <activity android:name=".ui.activities.CommentActivity"/>
         <service android:name=".PlayNetService"
-            android:process=":media"/>
+            android:process=":media">
+            <intent-filter>
+                <action android:name="com.hdychi.hencoderdemo.playnetservice"/>
+            </intent-filter>
+        </service>
         <service android:name=".PlayLocalService"
             android:process=":media"/>
     </application>

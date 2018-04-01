@@ -10,6 +10,7 @@ import com.orhanobut.hawk.Hawk
 import android.app.Activity
 import android.support.v7.app.AppCompatActivity
 import com.squareup.leakcanary.LeakCanary
+import java.lang.ref.WeakReference
 
 
 class DemoApp : Application(){
@@ -29,16 +30,17 @@ class DemoApp : Application(){
         Fresco.initialize(this,config)
         CommonData.context = this
     }
+    //TODO:修复静态持有Acvitiy导致的内存泄漏问题（弱引用？）
     companion object {
-        val lists = mutableListOf<AppCompatActivity>()
+        val lists = mutableListOf<WeakReference<AppCompatActivity>>()
 
-        fun addActivity(activity: AppCompatActivity) {
+        fun addActivity(activity: WeakReference<AppCompatActivity>) {
             lists.add(activity)
         }
 
         fun clearActivity() {
             for (activity in lists) {
-                activity.finish()
+                activity.get()?.finish()
             }
 
             lists.clear()

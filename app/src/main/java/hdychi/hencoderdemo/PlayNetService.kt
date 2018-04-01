@@ -13,94 +13,101 @@ import android.provider.MediaStore
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import android.widget.Toast
+import com.orhanobut.logger.Logger
 import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.Mp3Info
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.OnChangeListener
+import hdychi.hencoderdemo.interfaces.OnSuccessController
+import hdychi.hencoderdemo.support.MyLog
 import hdychi.hencoderdemo.support.toast
 import rx.Observable
 import rx.Subscriber
 
 
-class PlayNetService : Service() {
+class PlayNetService : Service(){
 
-    var mediaPlayer : MediaPlayer? = MediaPlayer()
-
-    override fun onBind(p0: Intent?): IBinder {
-        return MyBinder()
-    }
-    fun resetPlayer(listener: MediaPlayer.OnPreparedListener) {
-        destroyPlayer()
-        val subscriber = object : Subscriber<String>(){
-            override fun onNext(t: String?) {
-                mediaPlayer = MediaPlayer()
-                mediaPlayer?.setDataSource(t)
-                mediaPlayer?.setOnPreparedListener {it->
-                    playMusic()
-                    listener.onPrepared(it)
-                }
-                mediaPlayer?.prepareAsync()
-            }
-
-            override fun onCompleted() {}
-
-            override fun onError(e: Throwable?) {
-                applicationContext.toast("播放失败")
-            }
-
+    var mediaPlayer : MediaPlayer = MediaPlayer()
+    var hasPrepared  = false
+    override fun onBind(p0: Intent?): IBinder = MediaAidlInterfaceImpl()
+    fun resetPlayer() {
+        hasPrepared = false
+        val subscriber = CommonSubscriber<String>(this,"播放失败")
+        subscriber.onSuccessController = OnSuccessController {t ->
+            mediaPlayer = MediaPlayer()
+            mediaPlayer.setDataSource(t)
+            mediaPlayer.prepare()
+            hasPrepared = true
         }
+        //TODO:修复多进程静态变量失效问题
         ApiProvider.getMusicUrl(this,subscriber,
                 CommonData.getNetMusicList()[CommonData.getNowIndex()].id)
 
     }
-    fun playMusic() {
 
-        if (mediaPlayer?.isPlaying?:false) {
-            mediaPlayer?.pause()
-
-        }
-        else {
-            mediaPlayer?.start()
-        }
-    }
-
-    fun lastSong(listener: MediaPlayer.OnPreparedListener) {
-        CommonData.setNowIndex(CommonData.getNowIndex()-1)
-        if (CommonData.getNowIndex()< 0) {
-            CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
-        }
-
-        resetPlayer(listener)
-    }
-
-    fun nextSong(listener: MediaPlayer.OnPreparedListener) {
-
-        CommonData.setNowIndex(CommonData.getNowIndex()+1)
-        if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
-            CommonData.setNowIndex(0)
-        }
-        resetPlayer(listener)
-
-    }
-    fun seekTime(progress: Float) {
-        mediaPlayer?.seekTo(Math.floor((progress * (mediaPlayer?.duration?:0))
-                .toDouble()).toInt())
-    }
     fun destroyPlayer(){
-        mediaPlayer?.reset()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        mediaPlayer.reset()
+        mediaPlayer.release()
     }
     private fun showNotification(){
         val manager = getSystemService(Context.NOTIFICATION_SERVICE)
 
     }
-    inner class MyBinder : Binder() {
-        internal fun getService(listener: MediaPlayer.OnPreparedListener)
-                : PlayNetService {
-            return PlayNetService()
-
+    inner class MediaAidlInterfaceImpl: MediaAidlInterface.Stub(){
+        override fun getInfo(): String {
+            return "Service返回的字符串"
         }
+        override fun seekSec(secs: Int) {
+            mediaPlayer.seekTo(secs)
+        }
+
+        override fun seekProgress(progress: Float) {
+            mediaPlayer.seekTo(Math.floor((progress * (mediaPlayer.duration))
+                    .toDouble()).toInt())
+        }
+
+        override fun playOrPause() {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.pause()
+
+            }
+            else {
+                mediaPlayer.start()
+            }
+            MyLog("播放暂停")
+        }
+
+        override fun prev() {
+            CommonData.setNowIndex(CommonData.getNowIndex()-1)
+            if (CommonData.getNowIndex()< 0) {
+                CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
+            }
+
+            reset()
+        }
+
+        override fun next() {
+            CommonData.setNowIndex(CommonData.getNowIndex()+1)
+            if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
+                CommonData.setNowIndex(0)
+            }
+            reset()
+        }
+
+        override fun duration(): Int = mediaPlayer.duration
+
+        override fun postion(): Int = mediaPlayer.currentPosition
+
+
+        override fun reset() {
+            destroyPlayer()
+            resetPlayer()
+            playOrPause()
+            MyLog("重置")
+        }
+
+        override fun isPlaying(): Boolean = mediaPlayer.isPlaying
+
     }
 
 }
