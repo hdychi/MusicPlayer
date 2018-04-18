@@ -4,10 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
-import com.github.piasy.biv.BigImageViewer
-import com.github.piasy.biv.loader.fresco.FrescoImageLoader
 import com.orhanobut.hawk.Hawk
-import android.app.Activity
 import android.support.v7.app.AppCompatActivity
 import com.squareup.leakcanary.LeakCanary
 import java.lang.ref.WeakReference

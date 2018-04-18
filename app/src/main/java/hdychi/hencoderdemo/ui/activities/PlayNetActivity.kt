@@ -70,6 +70,15 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             playNetService = MediaAidlInterface.Stub.asInterface(service)
+
+            playNetService?.setPlayList( mutableListOf<String>()
+                    .let{ CommonData.getNetMusicList()
+                            .filter { t -> t!=null }
+                            .forEach {
+                t -> it.add(t!!.id!!.toString())}
+                it
+            })
+            playNetService?.setNowindex(CommonData.getNowIndex());
             playNetService?.reset()
             Log.i("测试",playNetService?.info)
             launch(CommonPool) {
@@ -119,12 +128,21 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
     private fun initListener(){
 
         last.setOnClickListener {
-            playNetService?.prev()
+            CommonData.setNowIndex(CommonData.getNowIndex()-1)
+            if (CommonData.getNowIndex()< 0) {
+                CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
+            }
             onChangeSong()
+            playNetService?.prev(CommonData.getNowIndex())
+
         }
         next.setOnClickListener {
-            playNetService?.next()
+            CommonData.setNowIndex(CommonData.getNowIndex()+1)
+            if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
+                CommonData.setNowIndex(0)
+            }
             onChangeSong()
+            playNetService?.next(CommonData.getNowIndex())
         }
         music_bar.setOnMoveListner { playNetService?.seekProgress(music_bar.progress) }
         play.setOnClickListener {

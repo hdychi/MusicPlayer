@@ -29,6 +29,8 @@ class PlayNetService : Service(){
 
     var mediaPlayer : MediaPlayer = MediaPlayer()
     var hasPrepared  = false
+    var playList : MutableList<Int> = mutableListOf()
+    var nowIndex = 0
     override fun onBind(p0: Intent?): IBinder = MediaAidlInterfaceImpl()
     fun resetPlayer() {
         hasPrepared = false
@@ -38,11 +40,10 @@ class PlayNetService : Service(){
             mediaPlayer.setDataSource(t)
             mediaPlayer.prepare()
             hasPrepared = true
+
         }
         //TODO:修复多进程静态变量失效问题
-        ApiProvider.getMusicUrl(this,subscriber,
-                CommonData.getNetMusicList()[CommonData.getNowIndex()].id)
-
+        ApiProvider.getMusicUrl(this,subscriber, playList[nowIndex].toInt())
     }
 
     fun destroyPlayer(){
@@ -54,6 +55,15 @@ class PlayNetService : Service(){
 
     }
     inner class MediaAidlInterfaceImpl: MediaAidlInterface.Stub(){
+        override fun setPlayList(playList: MutableList<String>) {
+            this@PlayNetService.playList.clear()
+            playList.forEach {t->this@PlayNetService.playList.add(t.toInt())}
+        }
+
+        override fun setNowindex(index: Int) {
+            nowIndex = index
+        }
+
         override fun getInfo(): String {
             return "Service返回的字符串"
         }
@@ -77,20 +87,13 @@ class PlayNetService : Service(){
             MyLog("播放暂停")
         }
 
-        override fun prev() {
-            CommonData.setNowIndex(CommonData.getNowIndex()-1)
-            if (CommonData.getNowIndex()< 0) {
-                CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
-            }
-
+        override fun prev(index : Int) {
+            nowIndex = index
             reset()
         }
 
-        override fun next() {
-            CommonData.setNowIndex(CommonData.getNowIndex()+1)
-            if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
-                CommonData.setNowIndex(0)
-            }
+        override fun next(index : Int) {
+            nowIndex = index
             reset()
         }
 
@@ -102,7 +105,6 @@ class PlayNetService : Service(){
         override fun reset() {
             destroyPlayer()
             resetPlayer()
-            playOrPause()
             MyLog("重置")
         }
 

@@ -1,6 +1,7 @@
 package hdychi.hencoderdemo;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.orhanobut.hawk.Hawk;
 

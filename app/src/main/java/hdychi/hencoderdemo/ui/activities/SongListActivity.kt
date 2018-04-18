@@ -78,8 +78,8 @@ class SongListActivity : BaseActivity() {
         intent.putExtra("id",mAdapter.getItem(index).id)
         CommonData.setNetMusicList(mAdapter.mItems)
         CommonData.setNowIndex(index)
-        DemoApp.lists.filter { t -> t is PlayNetActivity }
-                .forEach { t -> t.finish() }
+        DemoApp.lists.filter { t -> t.get() is PlayNetActivity }
+                .forEach { t -> t.get()?.finish() }
         startActivity(intent)
     }
 }
