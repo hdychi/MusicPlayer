@@ -18,6 +18,7 @@ import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.Mp3Info
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.OnChangeListener
+import hdychi.hencoderdemo.interfaces.OnEndController
 import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.MyLog
 import hdychi.hencoderdemo.support.toast
@@ -37,13 +38,21 @@ class PlayNetService : Service(){
         val subscriber = CommonSubscriber<String>(this,"播放失败")
         subscriber.onSuccessController = OnSuccessController {t ->
             mediaPlayer = MediaPlayer()
+            mediaPlayer.reset()
             mediaPlayer.setDataSource(t)
-            mediaPlayer.prepare()
-            hasPrepared = true
+            mediaPlayer.setOnPreparedListener {
+                t->t.start()
+                hasPrepared = true
+            }
+            try{
+                mediaPlayer.prepare()
+            }
+            catch(e : IllegalStateException){
+                e.printStackTrace()
+            }
 
         }
-        //TODO:修复多进程静态变量失效问题
-        ApiProvider.getMusicUrl(this,subscriber, playList[nowIndex].toInt())
+        ApiProvider.getMusicUrl(this,subscriber, playList[nowIndex])
     }
 
     fun destroyPlayer(){
@@ -84,7 +93,6 @@ class PlayNetService : Service(){
             else {
                 mediaPlayer.start()
             }
-            MyLog("播放暂停")
         }
 
         override fun prev(index : Int) {

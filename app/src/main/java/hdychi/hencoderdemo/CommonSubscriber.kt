@@ -4,6 +4,7 @@ import android.content.Context
 import hdychi.hencoderdemo.interfaces.OnEndController
 import hdychi.hencoderdemo.interfaces.OnErrorController
 import hdychi.hencoderdemo.interfaces.OnSuccessController
+import hdychi.hencoderdemo.support.MyLog
 import hdychi.hencoderdemo.support.toast
 import rx.Subscriber
 
@@ -27,6 +28,7 @@ class CommonSubscriber<T>(context: Context) : Subscriber<T>(){
 
     override fun onError(e: Throwable?) {
         e?.printStackTrace()
+        System.out.println("播放错误")
         mContext?.toast(errorMessage)
         onErrorController?.onFail(e)
         onEndController?.onEnd()

@@ -31,7 +31,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:layout_alignParentEnd="true"
-            android:text="3:34"
+            android:text="00:00"
             />
     </RelativeLayout>
     <LinearLayout

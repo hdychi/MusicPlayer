@@ -104,6 +104,10 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
     }
 
+    override fun onDestroy(){
+        super.onDestroy()
+        unbindService(connection)
+    }
     override fun onBackPressed() {
         moveTaskToBack(true)
     }
@@ -187,17 +191,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         onPauseMusicListener?.onPauseMusic(true)
     }
 
-    private val mDeathRecipient = object : IBinder.DeathRecipient {
-        override fun binderDied() {
-            if (playNetService == null) {
-                return
-            }
-            playNetService?.asBinder()?.unlinkToDeath(this, 0)
-            playNetService = null
-            this@PlayNetActivity.toast("服务死亡")
-            //TODO:重新绑定
-        }
-    }
+
 
     override fun getContentViewId(): Int = R.layout.activity_play_net
 

@@ -25,11 +25,10 @@ object ApiProvider{
 
     val client = OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
-            .connectTimeout(30,TimeUnit.SECONDS)
             .build()
 
     val mRetrofit = Retrofit.Builder()
-            .baseUrl("http://172.23.72.126:3000/")
+            .baseUrl("http://192.168.1.134:3000/")
             .client(client)
             .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
