@@ -17,18 +17,20 @@ import hdychi.hencoderdemo.interfaces.OnFragmentClickListener
 import hdychi.hencoderdemo.interfaces.OnPauseMusicListener
 import hdychi.hencoderdemo.interfaces.OnSeekToListener
 import hdychi.hencoderdemo.support.MusicUtil
+import hdychi.hencoderdemo.support.MyLog
 import hdychi.hencoderdemo.support.toast
 import hdychi.hencoderdemo.ui.fragments.AlbumFragment
 import hdychi.hencoderdemo.ui.fragments.LyricFrament
 import kotlinx.android.synthetic.main.activity_play_net.*
 import kotlinx.android.synthetic.main.play_bottom.*
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import java.text.SimpleDateFormat
 
-class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
-        MediaPlayer.OnPreparedListener,OnSeekToListener{
+class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
+        ,OnSeekToListener{
 
 
     var playNetService : MediaAidlInterface? = null
@@ -36,6 +38,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
     private val time = SimpleDateFormat("mm:ss")
     private var mIntent = Intent()
     private var activeFragment : Fragment = AlbumFragment.newInstance(0)
+    private var coroutine : Job? = null
     private val handler = Handler{_ ->
 
         try{
@@ -70,18 +73,19 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             playNetService = MediaAidlInterface.Stub.asInterface(service)
+            if(playNetService?.playingId != CommonData.getNetNowItemID()){
+                playNetService?.setPlayList( mutableListOf<String>()
+                        .let{ CommonData.getNetMusicList()
+                                .filter { t -> t!=null }
+                                .forEach {
+                                    t -> it.add(t!!.id!!.toString())}
+                            it
+                        })
+                playNetService?.setNowindex(CommonData.getNowIndex());
+                playNetService?.reset()
+            }
 
-            playNetService?.setPlayList( mutableListOf<String>()
-                    .let{ CommonData.getNetMusicList()
-                            .filter { t -> t!=null }
-                            .forEach {
-                t -> it.add(t!!.id!!.toString())}
-                it
-            })
-            playNetService?.setNowindex(CommonData.getNowIndex());
-            playNetService?.reset()
-            Log.i("测试",playNetService?.info)
-            launch(CommonPool) {
+            coroutine = launch(CommonPool) {
                 while(true){
                     refresh()
                 }
@@ -97,6 +101,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         initDisplay()
         initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
         initListener()
+
     }
 
     override fun onResume() {
@@ -106,10 +111,13 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
 
     override fun onDestroy(){
         super.onDestroy()
+        stopService(mIntent)
         unbindService(connection)
+        coroutine?.cancel()
     }
-    override fun onBackPressed() {
-        moveTaskToBack(true)
+
+    override fun onBackPressed(){
+        moveTaskToBack(false)
     }
     private fun initFrag(id : Int,type : Int){
         if(type == CommonData.ALBUM_FRAGMENT_ID){
@@ -185,13 +193,6 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener,
         initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
         play.background = getDrawable(R.drawable.loading)
     }
-
-    override fun onPrepared(p0: MediaPlayer?) {
-
-        onPauseMusicListener?.onPauseMusic(true)
-    }
-
-
 
     override fun getContentViewId(): Int = R.layout.activity_play_net
 
