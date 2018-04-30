@@ -96,12 +96,13 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mIntent = Intent(this,PlayNetService::class.java)
-        bindService(mIntent,connection, Context.BIND_AUTO_CREATE)
+        if(playNetService == null) {
+            mIntent = Intent(this, PlayNetService::class.java)
+            bindService(mIntent, connection, Context.BIND_AUTO_CREATE)
+        }
         initDisplay()
-        initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
+        initFrag(CommonData.getNetNowItemID(), CommonData.ALBUM_FRAGMENT_ID)
         initListener()
-
     }
 
     override fun onResume() {
@@ -111,7 +112,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
 
     override fun onDestroy(){
         super.onDestroy()
-        stopService(mIntent)
+        playNetService?.stopService()
         unbindService(connection)
         coroutine?.cancel()
     }

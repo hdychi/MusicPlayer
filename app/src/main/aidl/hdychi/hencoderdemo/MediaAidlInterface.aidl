@@ -10,6 +10,7 @@ interface MediaAidlInterface {
   void seekSec(int secs);
   void seekProgress(float progress);
   void reset();
+  void stopService();
   boolean isPlaying();
   String getInfo();
   void setPlayList(in List<String> playList);
