@@ -10,14 +10,13 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import com.orhanobut.logger.Logger
+import com.squareup.leakcanary.internal.LeakCanaryInternals.showNotification
 import hdychi.hencoderdemo.*
 import hdychi.hencoderdemo.bean.TracksItem
-import hdychi.hencoderdemo.interfaces.OnChangeListener
-import hdychi.hencoderdemo.interfaces.OnFragmentClickListener
-import hdychi.hencoderdemo.interfaces.OnPauseMusicListener
-import hdychi.hencoderdemo.interfaces.OnSeekToListener
+import hdychi.hencoderdemo.interfaces.*
 import hdychi.hencoderdemo.support.MusicUtil
 import hdychi.hencoderdemo.support.MyLog
+import hdychi.hencoderdemo.support.showNotification
 import hdychi.hencoderdemo.support.toast
 import hdychi.hencoderdemo.ui.fragments.AlbumFragment
 import hdychi.hencoderdemo.ui.fragments.LyricFrament
@@ -30,7 +29,8 @@ import kotlinx.coroutines.experimental.launch
 import java.text.SimpleDateFormat
 
 class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
-        ,OnSeekToListener{
+        ,OnSeekToListener,PlayController{
+
 
 
     var playNetService : MediaAidlInterface? = null
@@ -103,6 +103,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
         initDisplay()
         initFrag(CommonData.getNetNowItemID(), CommonData.ALBUM_FRAGMENT_ID)
         initListener()
+        showNotification(CommonData.getNetNowItemID())
     }
 
     override fun onResume() {
@@ -110,6 +111,10 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
         onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
     }
 
+    override fun onStop() {
+        super.onStop()
+        //this.showNotification()
+    }
     override fun onDestroy(){
         super.onDestroy()
         playNetService?.stopService()
@@ -119,6 +124,30 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
 
     override fun onBackPressed(){
         moveTaskToBack(false)
+    }
+    override fun pre() {
+        CommonData.setNowIndex(CommonData.getNowIndex()-1)
+        if (CommonData.getNowIndex()< 0) {
+            CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
+        }
+        onChangeSong()
+        playNetService?.prev(CommonData.getNowIndex())
+        showNotification(CommonData.getNetNowItemID())
+    }
+
+    override fun next() {
+        CommonData.setNowIndex(CommonData.getNowIndex()+1)
+        if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
+            CommonData.setNowIndex(0)
+        }
+        onChangeSong()
+        playNetService?.next(CommonData.getNowIndex())
+        showNotification(CommonData.getNetNowItemID())
+    }
+
+    override fun playOrPause() {
+        playNetService?.playOrPause()
+        onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
     }
     private fun initFrag(id : Int,type : Int){
         if(type == CommonData.ALBUM_FRAGMENT_ID){
@@ -140,29 +169,10 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     }
     private fun initListener(){
 
-        last.setOnClickListener {
-            CommonData.setNowIndex(CommonData.getNowIndex()-1)
-            if (CommonData.getNowIndex()< 0) {
-                CommonData.setNowIndex(CommonData.getNetMusicList().size - 1)
-            }
-            onChangeSong()
-            playNetService?.prev(CommonData.getNowIndex())
-
-        }
-        next.setOnClickListener {
-            CommonData.setNowIndex(CommonData.getNowIndex()+1)
-            if (CommonData.getNowIndex()>= CommonData.getNetMusicList().size) {
-                CommonData.setNowIndex(0)
-            }
-            onChangeSong()
-            playNetService?.next(CommonData.getNowIndex())
-        }
+        last.setOnClickListener { pre() }
+        next.setOnClickListener { next() }
         music_bar.setOnMoveListner { playNetService?.seekProgress(music_bar.progress) }
-        play.setOnClickListener {
-            playNetService?.playOrPause()
-            onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
-        }
-
+        play.setOnClickListener { playOrPause() }
 
     }
 

@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.provider.MediaStore
 import android.support.v4.app.NotificationCompat
 import android.util.Log
+import android.widget.RemoteViews
 import android.widget.Toast
 import com.orhanobut.logger.Logger
 import hdychi.hencoderdemo.api.ApiProvider
@@ -21,6 +22,7 @@ import hdychi.hencoderdemo.interfaces.OnChangeListener
 import hdychi.hencoderdemo.interfaces.OnEndController
 import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.MyLog
+import hdychi.hencoderdemo.support.showNotification
 import hdychi.hencoderdemo.support.toast
 import rx.Observable
 import rx.Subscriber
@@ -53,16 +55,14 @@ class PlayNetService : Service(){
 
         }
         ApiProvider.getMusicUrl(this,subscriber, playList[nowIndex])
+        //this.showNotification(playList[nowIndex])
     }
 
     fun destroyPlayer(){
         mediaPlayer.reset()
         mediaPlayer.release()
     }
-    private fun showNotification(){
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE)
 
-    }
     inner class MediaAidlInterfaceImpl: MediaAidlInterface.Stub(){
         override fun setPlayList(playList: MutableList<String>) {
             this@PlayNetService.playList.clear()
