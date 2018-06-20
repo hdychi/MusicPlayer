@@ -16,4 +16,5 @@ interface MediaAidlInterface {
   void setPlayList(in List<String> playList);
   void setNowindex(int index);
   int getPlayingId();
+  boolean hasPrepared();
 }

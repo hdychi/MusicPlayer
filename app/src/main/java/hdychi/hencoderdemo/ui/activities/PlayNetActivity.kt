@@ -42,7 +42,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     private val handler = Handler{_ ->
 
         try{
-            if(playNetService!=null){
+            if(playNetService!=null && playNetService!!.hasPrepared()){
                 val current = playNetService!!.postion()
                 nowTime.text = time.format(current)
                 val all = playNetService!!.duration()

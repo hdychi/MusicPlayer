@@ -4,9 +4,7 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationManager
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.provider.Contacts
@@ -48,43 +46,4 @@ fun Intent.isInTask(context: Context) : Boolean{
 
     }
     return false
-}
-fun Context.showNotification(id : Int){
-
-    val manager : NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    val builder =  NotificationCompat.Builder(this)
-    val mRemoteViews = RemoteViews(applicationContext.packageName, R.layout.custom_notification)
-    builder.setSmallIcon(R.drawable.play)
-    val subscriber = CommonSubscriber<SongsItem>(this,"获取歌曲失败")
-    subscriber.onSuccessController = OnSuccessController {
-        t ->
-        Glide.with(this)
-                .asBitmap()
-                .load(t.al?.picUrl)
-                .into(object : SimpleTarget<Bitmap>(){
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        mRemoteViews.setImageViewBitmap(R.id.notification_album,resource)
-                        mRemoteViews.setTextViewText(R.id.notification_title,t.name)
-                        mRemoteViews.setTextViewText(R.id.notification_artist,MusicUtil.getArStr(t.ar))
-                        val notify = builder
-                                .setLargeIcon(null)
-                                .setContent(mRemoteViews)
-                                .setCustomBigContentView(mRemoteViews)
-                                .setPriority(NotificationCompat.PRIORITY_MAX)
-                                .setOngoing(true)
-                                .build()
-
-                        manager.notify(CommonData.NOTIFICATION_ID,notify)
-                        MyLog("资源准备好了")
-                    }
-
-                })
-
-
-
-    }
-    if(this is PlayController){
-
-    }
-    ApiProvider.getSongDetail(this,subscriber,id)
 }

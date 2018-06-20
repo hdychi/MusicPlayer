@@ -28,7 +28,7 @@ object ApiProvider{
             .build()
 
     val mRetrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.1.119:3000/")
+            .baseUrl("http://172.23.133.14:3000/")
             .client(client)
             .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
@@ -60,6 +60,7 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply{ addSubscription(tag,this) }
     }
 
     fun getPlayLists(tag : Any,subscriber: Subscriber<MutableList<PlaylistItem>>){
@@ -87,6 +88,7 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
     fun getSongDetail(tag : Any,subscriber: Subscriber<SongsItem>,id : Int){
         mService.getSongDetail(id)
@@ -94,12 +96,14 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
     fun getSongComment(tag : Any,subscriber : Subscriber<CommentResponse>,id : Int,limit : Int,offset : Int){
         mService.getSongComment(id,limit,offset)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
     fun getLyric(tag : Any,subscriber: Subscriber<String>,id : Int){
         mService.getLyric(id)
@@ -107,5 +111,6 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
+                .apply { addSubscription(tag,this) }
     }
 }

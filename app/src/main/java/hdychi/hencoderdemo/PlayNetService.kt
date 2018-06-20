@@ -119,7 +119,7 @@ class PlayNetService : Service(){
             destroyPlayer()
             this@PlayNetService.stopSelf()
         }
-
+        override fun hasPrepared() : Boolean = hasPrepared
         override fun isPlaying(): Boolean = mediaPlayer.isPlaying
         override fun getPlayingId():Int = if(playList.size>0) playList[nowIndex] else -1
     }
