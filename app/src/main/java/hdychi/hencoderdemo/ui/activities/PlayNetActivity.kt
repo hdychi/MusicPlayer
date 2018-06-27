@@ -12,12 +12,10 @@ import android.util.Log
 import com.orhanobut.logger.Logger
 import com.squareup.leakcanary.internal.LeakCanaryInternals.showNotification
 import hdychi.hencoderdemo.*
+import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.*
-import hdychi.hencoderdemo.support.MusicUtil
-import hdychi.hencoderdemo.support.MyLog
-import hdychi.hencoderdemo.support.showNotification
-import hdychi.hencoderdemo.support.toast
+import hdychi.hencoderdemo.support.*
 import hdychi.hencoderdemo.ui.fragments.AlbumFragment
 import hdychi.hencoderdemo.ui.fragments.LyricFrament
 import kotlinx.android.synthetic.main.activity_play_net.*
@@ -39,6 +37,8 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     private var mIntent = Intent()
     private var activeFragment : Fragment = AlbumFragment.newInstance(0)
     private var coroutine : Job? = null
+    private lateinit var notificationProvider : NotificationProvider
+    private var isActive = false
     private val handler = Handler{_ ->
 
         try{
@@ -59,7 +59,14 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
                             .takeIf { t -> !t.isDragging() }
                             ?.refresh(current)
                 }
+
             }
+            else{
+                nowTime.text = time.format(0);
+                music_bar.progress = 0.0f
+            }
+            onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying?:false)
+
         }
         catch(e : IllegalStateException){
             e.printStackTrace()
@@ -81,7 +88,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
                                     t -> it.add(t!!.id!!.toString())}
                             it
                         })
-                playNetService?.setNowindex(CommonData.getNowIndex());
+                playNetService?.setNowindex(CommonData.getNowIndex())
                 playNetService?.reset()
             }
 
@@ -100,26 +107,30 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
             mIntent = Intent(this, PlayNetService::class.java)
             bindService(mIntent, connection, Context.BIND_AUTO_CREATE)
         }
-        initDisplay()
-        initFrag(CommonData.getNetNowItemID(), CommonData.ALBUM_FRAGMENT_ID)
         initListener()
-        showNotification(CommonData.getNetNowItemID())
+        notificationProvider  = NotificationProvider(this)
+        notificationProvider.refresh(CommonData.getNetNowItemID())
     }
 
     override fun onResume() {
         super.onResume()
-        onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
+        initDisplay()
+        initFrag(CommonData.getNetNowItemID(), CommonData.ALBUM_FRAGMENT_ID)
+
+        isActive = true
     }
 
-    override fun onStop() {
-        super.onStop()
-        //this.showNotification()
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        isActive = false
     }
+
     override fun onDestroy(){
         super.onDestroy()
         playNetService?.stopService()
         unbindService(connection)
         coroutine?.cancel()
+        notificationProvider.destroy()
     }
 
     override fun onBackPressed(){
@@ -132,7 +143,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
         }
         onChangeSong()
         playNetService?.prev(CommonData.getNowIndex())
-        showNotification(CommonData.getNetNowItemID())
+
     }
 
     override fun next() {
@@ -142,7 +153,6 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
         }
         onChangeSong()
         playNetService?.next(CommonData.getNowIndex())
-        showNotification(CommonData.getNetNowItemID())
     }
 
     override fun playOrPause() {
@@ -179,14 +189,14 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     private fun initDisplay(){
         val nowItem : TracksItem = CommonData.getNetMusicList()[CommonData.getNowIndex()]
         toolbar.title = nowItem.name
-        toolbar.subtitle = MusicUtil.getArtistsStr(nowItem.artists)
+        toolbar.subtitle = MusicUtil.getArtistsStr(nowItem.ar)
         if(toolbar.subtitle.length > 20){
             toolbar.subtitle = toolbar.subtitle.substring(0,17) + "..."
         }
     }
     private suspend fun refresh(){
         while(true) {
-            delay(200)
+            delay(500)
             handler.sendEmptyMessage(0)
         }
     }
@@ -201,8 +211,11 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     }
     override fun onChangeSong() {
         initDisplay()
-        initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
+        if (isActive){
+            initFrag(CommonData.getNetNowItemID(),CommonData.ALBUM_FRAGMENT_ID)
+        }
         play.background = getDrawable(R.drawable.loading)
+        notificationProvider.refresh(CommonData.getNetNowItemID())
     }
 
     override fun getContentViewId(): Int = R.layout.activity_play_net

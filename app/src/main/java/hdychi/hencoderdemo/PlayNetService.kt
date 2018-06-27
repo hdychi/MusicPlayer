@@ -22,7 +22,6 @@ import hdychi.hencoderdemo.interfaces.OnChangeListener
 import hdychi.hencoderdemo.interfaces.OnEndController
 import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.support.MyLog
-import hdychi.hencoderdemo.support.showNotification
 import hdychi.hencoderdemo.support.toast
 import rx.Observable
 import rx.Subscriber
@@ -39,15 +38,15 @@ class PlayNetService : Service(){
         hasPrepared = false
         val subscriber = CommonSubscriber<String>(this,"播放失败")
         subscriber.onSuccessController = OnSuccessController {t ->
-            mediaPlayer = MediaPlayer()
-            mediaPlayer.reset()
-            mediaPlayer.setDataSource(t)
-            mediaPlayer.setOnPreparedListener {
-                t->t.start()
-                hasPrepared = true
-            }
+
             try{
-                mediaPlayer.prepare()
+                mediaPlayer.setDataSource(t)
+                mediaPlayer.setOnPreparedListener {
+                    t->t.start()
+                    hasPrepared = true
+                    MyLog("资源准备好了2")
+                }
+                mediaPlayer.prepareAsync()
             }
             catch(e : IllegalStateException){
                 e.printStackTrace()
@@ -55,12 +54,14 @@ class PlayNetService : Service(){
 
         }
         ApiProvider.getMusicUrl(this,subscriber, playList[nowIndex])
-        //this.showNotification(playList[nowIndex])
+        MyLog("开始准备资源")
     }
 
     fun destroyPlayer(){
+        if(hasPrepared && mediaPlayer.isPlaying){
+            mediaPlayer.stop()
+        }
         mediaPlayer.reset()
-        mediaPlayer.release()
     }
 
     inner class MediaAidlInterfaceImpl: MediaAidlInterface.Stub(){
@@ -120,7 +121,12 @@ class PlayNetService : Service(){
             this@PlayNetService.stopSelf()
         }
         override fun hasPrepared() : Boolean = hasPrepared
-        override fun isPlaying(): Boolean = mediaPlayer.isPlaying
+        override fun isPlaying(): Boolean {
+            if(!hasPrepared()){
+                return false
+            }
+            return mediaPlayer.isPlaying
+        }
         override fun getPlayingId():Int = if(playList.size>0) playList[nowIndex] else -1
     }
 

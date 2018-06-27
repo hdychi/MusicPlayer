@@ -27,8 +27,4 @@ abstract class BaseActivity : AppCompatActivity() {
         MyLog("taskID："+taskId)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        ApiProvider.unSubscribe(this)
-    }
 }

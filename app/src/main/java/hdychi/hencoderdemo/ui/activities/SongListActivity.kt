@@ -27,10 +27,10 @@ class SongListActivity : BaseActivity() {
     override fun getContentViewId() = R.layout.activity_song_list
     override fun getToolBar(): Toolbar = toolbar
     val  mAdapter = SongListAdapter()
-    var id : Int = -1
+    var id : Long = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        id = intent?.getIntExtra("id",-1)?:-1
+        id = intent?.getLongExtra("id",-1)?:-1
         song_list_recycler.layoutManager = LinearLayoutManager(this)
         song_list_recycler.adapter = mAdapter
         song_list_recycler.addItemDecoration(SpacesItemDecoration(2))
@@ -48,12 +48,8 @@ class SongListActivity : BaseActivity() {
         refresh()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        ApiProvider.unSubscribe(this)
-    }
     private fun refresh(){
-        if(id == -1){
+        if(id.compareTo(-1) == 0){
             this.toast("歌单无效！")
             return
         }

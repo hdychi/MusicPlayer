@@ -36,8 +36,8 @@ class SongListAdapter : RecyclerView.Adapter<SongListAdapter.SongListVH>(){
             true -> nowItem.name.substring(0,17) + "..."
             false -> nowItem.name
         }
-        var singers = MusicUtil.getArtistsStr(nowItem.artists)
-        singers += "-" + nowItem.album?.name
+        var singers = MusicUtil.getArtistsStr(nowItem.ar)
+        singers += "-" + nowItem.al?.name
         if(singers.length>20){
             singers = singers.substring(0, 17)
             singers += "..."

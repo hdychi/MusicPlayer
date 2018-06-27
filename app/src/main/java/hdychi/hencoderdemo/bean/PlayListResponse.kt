@@ -17,7 +17,7 @@ data class PlaylistItem(val privacy: Int = 0,
                         @SerializedName("coverImgId_str")
                         val coverImgIdStr: String = "",
                         val specialType: Int = 0,
-                        val id: Int = 0,
+                        val id: Long = 0,
                         val totalDuration: Int = 0,
                         val ordered: Boolean = false,
                         val creator: Profile?,

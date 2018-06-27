@@ -27,10 +27,6 @@ class LoginActivity : AppCompatActivity(){
         loginButton.setOnClickListener { login() }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        ApiProvider.unSubscribe(this)
-    }
     private fun login(){
         loginButton.isActivated = false
         val subscriber = CommonSubscriber<UserBean>(this,"登录失败")

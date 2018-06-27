@@ -3,6 +3,7 @@ package hdychi.hencoderdemo.api
 import android.util.Log
 import hdychi.hencoderdemo.CommonData
 import hdychi.hencoderdemo.bean.*
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import okhttp3.internal.platform.Platform
@@ -25,10 +26,13 @@ object ApiProvider{
 
     val client = OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
+            .connectTimeout(10,TimeUnit.SECONDS)
+            .addNetworkInterceptor(HttpLoggingInterceptor()
+                    .apply { level = HttpLoggingInterceptor.Level.BODY })
             .build()
 
     val mRetrofit = Retrofit.Builder()
-            .baseUrl("http://172.23.133.14:3000/")
+            .baseUrl("http://172.23.147.71:3000/")
             .client(client)
             .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
@@ -36,31 +40,12 @@ object ApiProvider{
     val mService = mRetrofit.create(Api::class.java)
     val mSubscriptionsMap = mutableMapOf<Any, CompositeSubscription>()
 
-    fun unSubscribe(tag : Any) {
 
-        val subscriptions = mSubscriptionsMap[tag]
-        subscriptions?.unsubscribe()
-        mSubscriptionsMap.remove(tag)
-    }
-
-    fun addSubscription(tag : Any, subscription : Subscription ) {
-
-        var subscriptions = CompositeSubscription()
-        if (mSubscriptionsMap.containsKey(tag)) {
-            subscriptions = mSubscriptionsMap[tag]!!
-        }
-
-        subscriptions.add(subscription)
-
-        mSubscriptionsMap[tag] = subscriptions
-
-    }
     fun getUser(tag : Any,subscriber: Subscriber<UserBean>,userName : String,pwd : String){
         mService.login(userName,pwd)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply{ addSubscription(tag,this) }
     }
 
     fun getPlayLists(tag : Any,subscriber: Subscriber<MutableList<PlaylistItem>>){
@@ -70,17 +55,15 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
     }
 
-    fun getSongs(tag : Any, subscriber: Subscriber<Result>,id : Int){
+    fun getSongs(tag : Any, subscriber: Subscriber<Result>,id : Long){
         mService.getListDetail(id)
                 .filter { t -> t.code / 100 == 2|| t.code / 100 ==3 }
-                .map { t -> t.result }
+                .map { t -> t.playlist }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
     }
     fun getMusicUrl(tag : Any,subscriber: Subscriber<String>,id :Int){
         mService.getMusicUrl(id)
@@ -88,7 +71,7 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
+
     }
     fun getSongDetail(tag : Any,subscriber: Subscriber<SongsItem>,id : Int){
         mService.getSongDetail(id)
@@ -96,14 +79,13 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
+
     }
     fun getSongComment(tag : Any,subscriber : Subscriber<CommentResponse>,id : Int,limit : Int,offset : Int){
         mService.getSongComment(id,limit,offset)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
     }
     fun getLyric(tag : Any,subscriber: Subscriber<String>,id : Int){
         mService.getLyric(id)
@@ -111,6 +93,6 @@ object ApiProvider{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber)
-                .apply { addSubscription(tag,this) }
+
     }
 }

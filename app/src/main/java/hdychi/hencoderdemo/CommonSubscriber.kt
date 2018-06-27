@@ -28,7 +28,6 @@ class CommonSubscriber<T>(context: Context) : Subscriber<T>(){
 
     override fun onError(e: Throwable?) {
         e?.printStackTrace()
-        System.out.println("播放错误")
         mContext?.toast(errorMessage)
         onErrorController?.onFail(e)
         onEndController?.onEnd()

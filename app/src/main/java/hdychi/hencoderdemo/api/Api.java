@@ -17,7 +17,7 @@ public interface Api {
     @GET("user/playlist")
     Observable<PlayListResponse> getPlayLists(@Query("uid") Long uid);
     @GET("playlist/detail")
-    Observable<PlayDetailResponse> getListDetail(@Query("id") int id);
+    Observable<PlayDetailResponse> getListDetail(@Query("id") Long id);
     @GET("music/url")
     Observable<MusicUrlResponse> getMusicUrl(@Query("id")int id);
     @GET("song/detail")

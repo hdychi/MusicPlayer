@@ -30,14 +30,14 @@ data class TracksItem(val no: Int = 0,
                       val score: Int = 0,
                       val rtype: Int = 0,
                       val starred: Boolean = false,
-                      val artists: List<Artist>?,
+                      val ar: List<Artist>?,
                       val popularity: Int = 0,
                       val playedNum: Int = 0,
                       val hearTime: Int = 0,
                       val starredNum: Int = 0,
                       val id: Int = 0,
                       val mp3Url: String? = null,
-                      val album: Album?,
+                      val al: Album?,
                       val lMusic: Music?,
                       val ringtone: String = "",
                       val commentThreadId: String = "",
@@ -92,7 +92,7 @@ data class Album(val publishTime: Long = 0,
                  val status: Int = 0)
 
 
-data class PlayDetailResponse(val result: Result?,
+data class PlayDetailResponse(val playlist: Result?,
                               val code: Int = 0)
 
 

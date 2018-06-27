@@ -50,8 +50,6 @@ public class MusicBar extends View {
         }
         paint.setColor(Color.RED);
         canvas.drawRect(endX,startY - RADIUS / 2,endX + maxW / 100,startY + RADIUS,paint);
-        Log.i("onDr","调用");
-
     }
 
     @Override
