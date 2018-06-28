@@ -24,7 +24,8 @@ abstract class BaseActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         getToolBar().setNavigationOnClickListener{onBackPressed()}
         DemoApp.addActivity(WeakReference(this))
-        MyLog("taskID："+taskId)
+        MyLog(packageName+componentName+"taskID："+taskId)
+
     }
 
 }

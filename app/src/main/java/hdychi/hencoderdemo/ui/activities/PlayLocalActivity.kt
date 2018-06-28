@@ -9,8 +9,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import hdychi.hencoderdemo.PlayLocalService
-import hdychi.hencoderdemo.PlayService
+import hdychi.hencoderdemo.service.PlayLocalService
+import hdychi.hencoderdemo.service.PlayService
 import hdychi.hencoderdemo.R
 import hdychi.hencoderdemo.interfaces.OnChangeListener
 import kotlinx.android.synthetic.main.activity_play_local.*

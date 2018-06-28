@@ -24,7 +24,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activities.MainActivity" />
-        <activity android:name=".ui.activities.SongListActivity">
+        <activity android:name=".ui.activities.SongListActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="playList"/>
 
@@ -34,15 +35,16 @@
 
         <activity android:name=".ui.activities.PlayNetActivity"
             android:launchMode="singleTask"
-            android:taskAffinity="com.hdychi.ui.activities.PlayNetActivity"/>
+            android:taskAffinity="com.hdychi.ui.activities.PlayNetActivity" />
+        <!--android:taskAffinity="com.hdychi.ui.activities.PlayNetActivity"-->
         <activity android:name=".ui.activities.CommentActivity"/>
-        <service android:name=".PlayNetService"
+        <service android:name=".service.PlayNetService"
             android:process=":media">
             <intent-filter>
                 <action android:name="com.hdychi.hencoderdemo.playnetservice"/>
             </intent-filter>
         </service>
-        <service android:name=".PlayLocalService"
+        <service android:name=".service.PlayLocalService"
             android:process=":media"/>
     </application>
 

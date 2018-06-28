@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.service
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.IBinder
 import android.provider.MediaStore
+import hdychi.hencoderdemo.CommonData
 import hdychi.hencoderdemo.bean.Mp3Info
 import hdychi.hencoderdemo.support.MusicUtil
 

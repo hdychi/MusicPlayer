@@ -24,6 +24,8 @@ import hdychi.hencoderdemo.interfaces.OnSuccessController
 import hdychi.hencoderdemo.interfaces.PlayController
 import android.app.NotificationChannel
 import android.os.Build
+import hdychi.hencoderdemo.ui.activities.MainActivity
+import hdychi.hencoderdemo.ui.activities.PlayNetActivity
 
 
 class NotificationProvider(context: Context){
@@ -43,12 +45,10 @@ class NotificationProvider(context: Context){
             val importance = NotificationManager.IMPORTANCE_LOW
             val mChannel = NotificationChannel(chanel_id, name, importance)
             manager.createNotificationChannel(mChannel)
-            builder = NotificationCompat.Builder(context,mChannel.id)
-            MyLog("大于26")
+            builder = NotificationCompat.Builder(context, mChannel.id)
         }
         else{
             builder =  NotificationCompat.Builder(context)
-
         }
         notify = builder!!
                 .setSmallIcon(R.drawable.play)
@@ -56,7 +56,12 @@ class NotificationProvider(context: Context){
                 .setCustomBigContentView(mRemoteViews)
                 .setOngoing(true)
                 .build()
-
+        val intentActivity = Intent(Intent.ACTION_MAIN)
+        intentActivity.addCategory(Intent.CATEGORY_LAUNCHER)
+        intentActivity.setClass(context,MainActivity::class.java)
+        intentActivity.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+        val pendingIntentAct = PendingIntent.getActivity(context,CommonData.PLAY_ACTIVITY_REQUEST_CODE,intentActivity, 0)
+        notify.contentIntent = pendingIntentAct
         val intentPre = Intent(CommonData.NOTIFICATION_ACTION)
         intentPre.putExtra(CommonData.NOTIFICATION_EXTRA,CommonData.PRE_REQUEST_CODE)
         val pendingIntentPre = PendingIntent.getBroadcast(context,CommonData.PRE_REQUEST_CODE,intentPre
@@ -85,24 +90,32 @@ class NotificationProvider(context: Context){
         val subscriber = CommonSubscriber<SongsItem>(mContext!!,"获取歌曲失败")
         subscriber.onSuccessController = OnSuccessController {
             t ->
-            Glide.with(mContext!!)
-                    .asBitmap()
-                    .load(t.al?.picUrl)
-                    .into(object : SimpleTarget<Bitmap>(){
-                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                            mRemoteViews.setImageViewBitmap(R.id.notification_album,resource)
-                            mRemoteViews.setTextViewText(R.id.notification_title,t.name)
-                            mRemoteViews.setTextViewText(R.id.notification_artist, MusicUtil.getArStr(t.ar))
-                            manager.notify(CommonData.NOTIFICATION_ID,notify)
-                        }
+            mRemoteViews.setTextViewText(R.id.notification_title,t.name)
+            mRemoteViews.setTextViewText(R.id.notification_artist, MusicUtil.getArStr(t.ar))
+            try {
+                Glide.with(mContext!!)
+                        .asBitmap()
+                        .load(t.al?.picUrl)
+                        .into(object : SimpleTarget<Bitmap>(){
+                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                                mRemoteViews.setImageViewBitmap(R.id.notification_album,resource)
+                                manager.notify(CommonData.NOTIFICATION_ID,notify)
+                            }
 
-                    })
+                        })
+            }
+            catch (e : Exception){
+                manager.notify(CommonData.NOTIFICATION_ID,notify)
+                e.printStackTrace()
+            }
+
         }
         ApiProvider.getSongDetail(this,subscriber,id)
     }
     fun destroy(){
         mContext?.unregisterReceiver(notificationReceiver)
         mContext = null
+        manager.cancel(CommonData.NOTIFICATION_ID)
     }
 
 }

@@ -2,19 +2,15 @@ package hdychi.hencoderdemo.ui.activities
 
 
 import android.content.*
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.support.v4.app.Fragment
 import android.support.v7.widget.Toolbar
-import android.util.Log
-import com.orhanobut.logger.Logger
-import com.squareup.leakcanary.internal.LeakCanaryInternals.showNotification
 import hdychi.hencoderdemo.*
-import hdychi.hencoderdemo.api.ApiProvider
 import hdychi.hencoderdemo.bean.TracksItem
 import hdychi.hencoderdemo.interfaces.*
+import hdychi.hencoderdemo.service.PlayNetService
 import hdychi.hencoderdemo.support.*
 import hdychi.hencoderdemo.ui.fragments.AlbumFragment
 import hdychi.hencoderdemo.ui.fragments.LyricFrament
@@ -134,7 +130,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
     }
 
     override fun onBackPressed(){
-        moveTaskToBack(false)
+        moveTaskToBack(true)
     }
     override fun pre() {
         CommonData.setNowIndex(CommonData.getNowIndex()-1)
@@ -157,7 +153,7 @@ class PlayNetActivity : BaseActivity(),OnFragmentClickListener,OnChangeListener
 
     override fun playOrPause() {
         playNetService?.playOrPause()
-        onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying()?:false)
+        onPauseMusicListener?.onPauseMusic(playNetService?.isPlaying?:false)
     }
     private fun initFrag(id : Int,type : Int){
         if(type == CommonData.ALBUM_FRAGMENT_ID){

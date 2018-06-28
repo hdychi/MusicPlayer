@@ -1,4 +1,4 @@
-package hdychi.hencoderdemo
+package hdychi.hencoderdemo.service
 
 import android.app.Service
 import android.content.Intent
@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import hdychi.hencoderdemo.CommonData
 import hdychi.hencoderdemo.interfaces.OnChangeListener
 
 abstract class PlayService : Service(){
@@ -34,16 +35,16 @@ abstract class PlayService : Service(){
     }
 
     fun lastSong() {
-        CommonData.setNowIndex(CommonData.getNowIndex()-1)
-        if (CommonData.getNowIndex()< 0) {
+        CommonData.setNowIndex(CommonData.getNowIndex() - 1)
+        if (CommonData.getNowIndex() < 0) {
             CommonData.setNowIndex(musicSize - 1)
         }
         resetPlayer()
     }
 
     fun nextSong() {
-        CommonData.setNowIndex(CommonData.getNowIndex()+1)
-        if (CommonData.getNowIndex()>= musicSize) {
+        CommonData.setNowIndex(CommonData.getNowIndex() + 1)
+        if (CommonData.getNowIndex() >= musicSize) {
             CommonData.setNowIndex(0)
         }
 

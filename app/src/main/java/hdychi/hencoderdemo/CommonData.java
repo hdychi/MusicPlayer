@@ -19,6 +19,7 @@ public class CommonData {
     public static int PRE_REQUEST_CODE = 0;
     public static int NEXT_REQUEST_CODE = 1;
     public static int PLAY_PAUSE_REQUEST_CODE = 2;
+    public static int PLAY_ACTIVITY_REQUEST_CODE = 2;
     public static String NOTIFICATION_EXTRA = "notification extra";
     public static String NOTIFICATION_ACTION = "notificaition action";
     public static int NOTIFICATION_ID = 520;
