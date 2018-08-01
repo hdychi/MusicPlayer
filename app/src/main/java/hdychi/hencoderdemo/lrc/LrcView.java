@@ -193,16 +193,18 @@ public class LrcView extends View{
         }
 
         for(int i = mLrcRows.size() - 1;i >= 0;i--){
-            if(mLrcRows.get(i).getTime() < timeSecs || i == 0){
+            if(mLrcRows.get(i).getTime() <= timeSecs || i == 0){
                 mCurRow = i;
                 if(!isFromSelf){
                     if(!mScroller.isFinished()){
                         mScroller.forceFinished(true);
                     }
-                    scrollTo(getScrollX(),(int)((mCurRow * (mCurSizeForOtherLrc + mCurPadding)) - getHeight() / 2.0f));
+                    if (mCurRow != lastRow) {
+                        smoothScrollTo((int)((mCurRow * (mCurSizeForOtherLrc + mCurPadding)) - getHeight() / 2.0f),DURATION_FOR_LRC_SCROLL);
+                    }
                 }
                 else{
-                    smoothScrollTo((int)((mCurRow * (mCurSizeForOtherLrc + mCurPadding)) - getHeight() / 2.0f),DURATION_FOR_LRC_SCROLL);
+                    // smoothScrollTo((int)((mCurRow * (mCurSizeForOtherLrc + mCurPadding)) - getHeight() / 2.0f),DURATION_FOR_LRC_SCROLL);
                 }
                 float textWidth = mPaintForHighLightLrc.measureText(mLrcRows.get(mCurRow).getContent());
                 if(textWidth > getWidth()){
@@ -301,7 +303,9 @@ public class LrcView extends View{
                 }
 
                 if (canDrag) {
+
                     float offset = event.getRawY() - lastY;//偏移量
+                    //偏移超过屏幕范围了，减小偏移量
                     if (getScrollY() - offset < 0) {
                         if (offset > 0) {
                             offset = offset / 3;
@@ -312,7 +316,7 @@ public class LrcView extends View{
                             offset = offset / 3;
                         }
                     }
-                    scrollBy(getScrollX(), -(int) offset);
+                    scrollBy(0, -(int) offset);
                     lastY = event.getRawY();
                     int currentRow = (int) ((getScrollY() + getHeight() / 2.0f)/ (mCurSizeForOtherLrc + mCurPadding));
                     currentRow = Math.min(currentRow, mLrcRows.size() - 1);

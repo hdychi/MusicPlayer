@@ -32,7 +32,7 @@ object ApiProvider{
             .build()
 
     val mRetrofit = Retrofit.Builder()
-            .baseUrl("http://172.20.10.7:3000/")
+            .baseUrl("http://172.18.228.42:3000/")
             .client(client)
             .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
